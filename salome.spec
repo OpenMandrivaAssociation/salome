@@ -1,5 +1,5 @@
 %define		srcv		src%{version}
-%define		modules		KERNEL MED GEOM SMESH BLSURFPLUGIN HXX2SALOMEDOC PYLIGHT CALCULATOR HXX2SALOME RANDOMIZER COMPONENT SAMPLES LIGHT SIERPINSKY GHS3DPLUGIN GHS3DPRLPLUGIN MULTIPR VISU GUI NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+%define		modules		MED GEOM SMESH BLSURFPLUGIN HXX2SALOMEDOC PYLIGHT CALCULATOR HXX2SALOME RANDOMIZER COMPONENT SAMPLES LIGHT SIERPINSKY GHS3DPLUGIN GHS3DPRLPLUGIN MULTIPR VISU NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 
 Name:		salome
@@ -15,21 +15,32 @@ Source0:	src5.1.3.tar.gz
 Source1:	doc5.1.3.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
+BuildRequires:	bison flex
 BuildRequires:	boost-devel
 BuildRequires:	cppunit-devel
 BuildRequires:	doxygen
 BuildRequires:	gcc-gfortran
+BuildRequires:	GL-devel
+BuildRequires:	graphviz
 BuildRequires:	hdf5-devel
+BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	omniorb-devel
 BuildRequires:	opencascade-devel
+BuildRequires:	openmpi-devel
 BuildRequires:	python-omniidl
 BuildRequires:	python-omniorb
+BuildRequires:	python-qt4-devel
+BuildRequires:	qt4-devel
 BuildRequires:	swig
+BuildRequires:	vtk-devel
+BuildRequires:	X11-devel
 %py_requires -d
 
 Patch0:		lib_location_suffix.patch
-Patch1:		underlink.patch
+Patch1:		opencascade.patch
+Patch2:		underlink.patch
+Patch3:		format.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -53,19 +64,53 @@ life-cycle management of CAD models.
 
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
+%patch3 -p1
+
+# want the kernel version that doesn't want to link to /usr/lib/lbxml.a
+cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
 
 %build
 export KERNEL_ROOT_DIR=%{_builddir}/%{srcv}/KERNEL_SRC_%{version}
 export MED_ROOT_DIR=%{_builddir}/%{srcv}/MED_SRC_%{version}
 export GEOM_ROOT_DIR=%{_builddir}/%{srcv}/GEOM_SRC_%{version}
 export SMESH_ROOT_DIR=%{_builddir}/%{srcv}/SMESH_SRC_%{version}
+export CASROOT=%{_datadir}/opencascade
+
+pushd KERNEL_SRC_%{version}
+    %configure						\
+	--with-python-site=%{python_sitearch}		\
+	--with-python-site-exec=%{python_sitearch}	\
+	--with-openmpi=%{_prefix}			\
+    %make
+    %makeinstall_std
+popd
+
+# most of remaining build wants it in the directory layout after make install
+export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
+
+pushd GUI_SRC_%{version}
+    perl -pi						\
+	-e 's@ (SALOME(DS|_Component)\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;'	\
+	idl/.depidl
+    sh ./build_configure
+    %configure						\
+	--with-python-site=%{python_sitearch}		\
+	--with-python-site-exec=%{python_sitearch}	\
+	--with-kernel=$KERNEL_ROOT_DIR			\
+    %make
+    %makeinstall_std
+popd
 
 for module in %{modules}; do
     pushd ${module}_SRC_%{version}
 	sh ./build_configure
 	%configure					\
 	    --with-python-site=%{python_sitearch}	\
-	    --with-python-site-exec=%{python_sitearch}
+	    --with-python-site-exec=%{python_sitearch}	\
+	    --with-openmpi=%{_prefix}			\
+	    --with-kernel=$KERNEL_ROOT_DIR		\
+	    --with-gui=%{buildroot}
 	%make
     popd
 done
