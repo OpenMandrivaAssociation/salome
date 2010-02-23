@@ -1,6 +1,5 @@
 %define		srcv		src%{version}
-%define		modules		GEOM SMESH BLSURFPLUGIN HXX2SALOMEDOC PYLIGHT CALCULATOR HXX2SALOME RANDOMIZER COMPONENT SAMPLES LIGHT SIERPINSKY GHS3DPLUGIN GHS3DPRLPLUGIN MULTIPR VISU NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
-
+%define		modules		BLSURFPLUGIN HXX2SALOMEDOC PYLIGHT CALCULATOR HXX2SALOME RANDOMIZER COMPONENT SAMPLES LIGHT SIERPINSKY GHS3DPLUGIN GHS3DPRLPLUGIN MULTIPR VISU NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
 Group:		Sciences/Physics
@@ -22,6 +21,7 @@ BuildRequires:	doxygen
 BuildRequires:	gcc-gfortran
 BuildRequires:	GL-devel
 BuildRequires:	graphviz
+BuildRequires:	hdf5
 BuildRequires:	hdf5-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
@@ -40,12 +40,11 @@ BuildRequires:	X11-devel
 
 Patch0:		lib_location_suffix.patch
 Patch1:		opencascade.patch
-# Some of these are not "clean" patches, i.e. for example, they hardcode
-# a -lmpi, while the proper patch should have been to correct the build
-# to add it conditionally (but there isn't a "placeholder" variable for it...)
 Patch2:		underlink.patch
 Patch3:		format.patch
 Patch4:		paramnames.patch
+Patch5:		libc.patch
+Patch6:		libxml2.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -64,6 +63,7 @@ SALOME can also be used as a platform for integration of the external
 third-party numerical codes to produce a new application for the full
 life-cycle management of CAD models.
 
+#-----------------------------------------------------------------------
 %prep
 %setup -q -n %{srcv}
 
@@ -72,9 +72,15 @@ life-cycle management of CAD models.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
+%patch6 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
+
+#-----------------------------------------------------------------------
+# link with libraries in buildroot, not in _libdir
+%define ldflags_buildroot	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{buildroot}$1|g;' %{buildroot}%{_libdir}/salome/*la
 
 %build
 export KERNEL_ROOT_DIR=%{_builddir}/%{srcv}/KERNEL_SRC_%{version}
@@ -90,18 +96,14 @@ pushd KERNEL_SRC_%{version}
 	--with-openmpi=%{_prefix}					\
     %make
     %makeinstall_std
-    # hack for some linking errors
-    perl -pi								\
-	-e 's|^(installed)=yes|$1=no|;'					\
-	-e 's| (%{_libdir}/salome/lib\w+\.la)| %{buildroot}$1|g;'	\
-	%{buildroot}%{_libdir}/salome/*la
+    %{ldflags_buildroot}
 popd
 
 export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
 
 pushd GUI_SRC_%{version}
     perl -pi								\
-	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;'	\
+	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
     sh ./build_configure
     %configure								\
@@ -110,27 +112,18 @@ pushd GUI_SRC_%{version}
 	--with-kernel=$KERNEL_ROOT_DIR					\
     %make
     %makeinstall_std
+    %{ldflags_buildroot}
 popd
 
 export GUI_ROOT_DIR=%{buildroot}%{_prefix}
 
-pushd MED_SRC_%{version}
-    perl -pi								\
-	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;'	\
-	idl/.depidl
-    sh ./build_configure
-    %configure								\
-	--with-python-site=%{python_sitearch}				\
-	--with-python-site-exec=%{python_sitearch}			\
-	--with-openmpi=%{_prefix}					\
-	--with-kernel=$KERNEL_ROOT_DIR					\
-	--with-gui=$GUI_ROOT_DIR
-    %make
-    %makeinstall_std
-popd
-
-for module in %{modules}; do
+for module in MED GEOM; do
     pushd ${module}_SRC_%{version}
+	if [ -f idl/.depidl ]; then					\
+	    perl -pi							\
+		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+		idl/.depidl
+	fi
 	sh ./build_configure
 	%configure							\
 	    --with-python-site=%{python_sitearch}			\
@@ -139,6 +132,43 @@ for module in %{modules}; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	%make
+	%makeinstall_std
+	%{ldflags_buildroot}
+    popd
+done
+
+pushd SMESH_SRC_%{version}
+    perl -pi								\
+	-e 's@ ((SALOME\w|GEOM_Gen)\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+	idl/.depidl
+    sh ./build_configure
+    %configure								\
+	--with-python-site=%{python_sitearch}				\
+	--with-python-site-exec=%{python_sitearch}			\
+	--with-kernel=$KERNEL_ROOT_DIR					\
+	--with-gui=$GUI_ROOT_DIR
+    %make
+    %makeinstall_std
+    %{ldflags_buildroot}
+popd
+
+for module in %{modules}; do
+    pushd ${module}_SRC_%{version}
+	if [ -f idl/.depidl ]; then					\
+	    perl -pi							\
+		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+		idl/.depidl
+	fi
+	sh ./build_configure
+	%configure							\
+	    --with-python-site=%{python_sitearch}			\
+	    --with-python-site-exec=%{python_sitearch}			\
+	    --with-openmpi=%{_prefix}					\
+	    --with-kernel=$KERNEL_ROOT_DIR				\
+	    --with-gui=$GUI_ROOT_DIR
+	%make
+	%makeinstall_std
+	%{ldflags_buildroot}
     popd
 done
 
@@ -148,14 +178,8 @@ rm -rf %{buildroot}
 
 #-----------------------------------------------------------------------
 %install
-# undo hack for some linking errors
+# link with libraries in _libdir, not in buildroot
 perl -pi								\
     -e 's|^(installed)=no|$1=yes|;'					\
     -e 's| %{buildroot}(%{_libdir}/salome/lib\w\.la)| $1|g;'		\
     %{buildroot}%{_libdir}/salome/*la
-
-for module in %{modules}; do
-    pushd $module_SRC_%{version}
-	%makeinstall_std
-    popd
-done
