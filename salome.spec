@@ -1,5 +1,9 @@
 %define		srcv		src%{version}
-%define		modules		BLSURFPLUGIN HXX2SALOMEDOC PYLIGHT CALCULATOR HXX2SALOME RANDOMIZER COMPONENT SAMPLES LIGHT SIERPINSKY GHS3DPLUGIN GHS3DPRLPLUGIN MULTIPR VISU NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+
+# FIXME need (at least) distene/{api,blsurf}.h for BLSURFPLUGIN module
+# HXX2SALOMEDOC are only documentation files
+# TODO SAMPLES
+%define		modules		 GHS3DPRLPLUGIN MULTIPR NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
 Group:		Sciences/Physics
@@ -45,6 +49,12 @@ Patch3:		format.patch
 Patch4:		paramnames.patch
 Patch5:		libc.patch
 Patch6:		libxml2.patch
+Patch7:		destdir.patch
+Patch8:		undefined.patch
+
+# Weird linking problem; this patch just prints the link failure message and
+# calls abort if the code would ever follow the path with the undefined symbol...
+Patch9:		FIXME.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -74,6 +84,9 @@ life-cycle management of CAD models.
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
+%patch8 -p1
+%patch9 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -83,10 +96,13 @@ cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC
 %define ldflags_buildroot	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{buildroot}$1|g;' %{buildroot}%{_libdir}/salome/*la
 
 %build
-export KERNEL_ROOT_DIR=%{_builddir}/%{srcv}/KERNEL_SRC_%{version}
-export MED_ROOT_DIR=%{_builddir}/%{srcv}/MED_SRC_%{version}
-export GEOM_ROOT_DIR=%{_builddir}/%{srcv}/GEOM_SRC_%{version}
-export SMESH_ROOT_DIR=%{_builddir}/%{srcv}/SMESH_SRC_%{version}
+export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
+export GUI_ROOT_DIR=%{buildroot}%{_prefix}
+export MED_ROOT_DIR=%{buildroot}%{_prefix}
+export GEOM_ROOT_DIR=%{buildroot}%{_prefix}
+export SMESH_ROOT_DIR=%{buildroot}%{_prefix}
+export RANDOMIZER_ROOT_DIR=%{buildroot}%{_prefix}
+export VISU_ROOT_DIR=%{buildroot}%{_prefix}
 export CASROOT=%{_datadir}/opencascade
 
 pushd KERNEL_SRC_%{version}
@@ -98,8 +114,6 @@ pushd KERNEL_SRC_%{version}
     %makeinstall_std
     %{ldflags_buildroot}
 popd
-
-export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
 
 pushd GUI_SRC_%{version}
     perl -pi								\
@@ -115,7 +129,9 @@ pushd GUI_SRC_%{version}
     %{ldflags_buildroot}
 popd
 
-export GUI_ROOT_DIR=%{buildroot}%{_prefix}
+for module in RANDOMIZER VISU LIGHT SIERPINSKY; do
+    cp -f GUI_SRC_%{version}/adm_local/unix/config_files/check_GUI.m4 ${module}_SRC_%{version}/adm_local/unix/config_files
+done
 
 for module in MED GEOM; do
     pushd ${module}_SRC_%{version}
@@ -147,6 +163,40 @@ pushd SMESH_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR					\
 	--with-gui=$GUI_ROOT_DIR
+    %make
+    %makeinstall_std
+    %{ldflags_buildroot}
+popd
+
+for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
+    pushd ${module}_SRC_%{version}
+	if [ -f idl/.depidl ]; then					\
+	    perl -pi							\
+		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+		idl/.depidl
+	fi
+	sh ./build_configure
+	%configure							\
+	    --with-python-site=%{python_sitearch}			\
+	    --with-python-site-exec=%{python_sitearch}			\
+	    --with-openmpi=%{_prefix}					\
+	    --with-kernel=$KERNEL_ROOT_DIR				\
+	    --with-gui=$GUI_ROOT_DIR
+	%make
+	%makeinstall_std
+	%{ldflags_buildroot}
+    popd
+done
+
+# fails if --with-gui option isn't either "yes" or "no", but properly
+# "detects" it based on other shell variables
+pushd LIGHT_SRC_%{version}
+    perl -pi								\
+    sh ./build_configure
+    %configure								\
+	--with-python-site=%{python_sitearch}				\
+	--with-python-site-exec=%{python_sitearch}			\
+	--with-kernel=$KERNEL_ROOT_DIR
     %make
     %makeinstall_std
     %{ldflags_buildroot}
