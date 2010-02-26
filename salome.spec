@@ -3,7 +3,8 @@
 # FIXME need (at least) distene/{api,blsurf}.h for BLSURFPLUGIN module
 # HXX2SALOMEDOC are only documentation files
 # TODO SAMPLES
-%define		modules		 GHS3DPRLPLUGIN MULTIPR NETGENPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+# TODO NETGENPLUGIN (package functional built (but latest version 4.9.11, not salome's required 4.5) but needs extra work with salome integration)
+%define		modules		 GHS3DPRLPLUGIN MULTIPR XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
 Group:		Sciences/Physics
@@ -135,7 +136,7 @@ done
 
 for module in MED GEOM; do
     pushd ${module}_SRC_%{version}
-	if [ -f idl/.depidl ]; then					\
+	if [ -f idl/.depidl ]; then
 	    perl -pi							\
 		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
@@ -204,12 +205,14 @@ popd
 
 for module in %{modules}; do
     pushd ${module}_SRC_%{version}
-	if [ -f idl/.depidl ]; then					\
+	if [ -f idl/.depidl ]; then
 	    perl -pi							\
 		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
 	fi
-	sh ./build_configure
+	if [ -f ./build_configure ]; then
+	    sh ./build_configure
+	fi
 	%configure							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
