@@ -36,8 +36,10 @@ BuildRequires:	openmpi-devel
 BuildRequires:	python-omniidl
 BuildRequires:	python-omniorb
 BuildRequires:	python-qt4-devel
+BuildRequires:	python-sphinx
 BuildRequires:	python-vtk-devel
 BuildRequires:	qt4-devel
+BuildRequires:	qscintilla-qt4-devel
 BuildRequires:	swig
 BuildRequires:	vtk-devel
 BuildRequires:	X11-devel
@@ -56,6 +58,12 @@ Patch8:		undefined.patch
 # Weird linking problem; this patch just prints the link failure message and
 # calls abort if the code would ever follow the path with the undefined symbol...
 Patch9:		FIXME.patch
+
+#  There is also a include order change in underlink.patch
+#  The reason is YACS code using Node.hxx from INTERP_KERNEL, and not
+# YACS/src/engine due to adding -I$(KERNEL_ROOT_DIR)/include/salome before
+# "local" includes
+Patch10:	includeorder.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -88,6 +96,7 @@ life-cycle management of CAD models.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -216,6 +225,8 @@ for module in %{modules}; do
 	%configure							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
+	    --with-qsci4-includes=%{qt4include}				\
+	    --with-qsci4-libraries=%{_libdir}				\
 	    --with-openmpi=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
