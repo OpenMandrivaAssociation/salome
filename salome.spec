@@ -4,7 +4,7 @@
 # HXX2SALOMEDOC are only documentation files
 # TODO SAMPLES
 # TODO NETGENPLUGIN (package functional built (but latest version 4.9.11, not salome's required 4.5) but needs extra work with salome integration)
-%define		modules		 GHS3DPRLPLUGIN MULTIPR XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+%define		modules		GHS3DPRLPLUGIN MULTIPR XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
 Group:		Sciences/Physics
@@ -26,6 +26,7 @@ BuildRequires:	doxygen
 BuildRequires:	gcc-gfortran
 BuildRequires:	GL-devel
 BuildRequires:	graphviz
+BuildRequires:	graphviz-devel
 BuildRequires:	hdf5
 BuildRequires:	hdf5-devel
 BuildRequires:	libqwt-devel
@@ -65,6 +66,8 @@ Patch9:		FIXME.patch
 # "local" includes
 Patch10:	includeorder.patch
 
+Patch11:	prefix.patch
+
 %description
 SALOME is an open-source software that provides a generic platform for
 Pre- and Post-Processing for numerical simulation. It is based on an open
@@ -97,6 +100,7 @@ life-cycle management of CAD models.
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -116,6 +120,7 @@ export VISU_ROOT_DIR=%{buildroot}%{_prefix}
 export CASROOT=%{_datadir}/opencascade
 
 pushd KERNEL_SRC_%{version}
+    sh ./build_configure
     %configure								\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
@@ -139,7 +144,7 @@ pushd GUI_SRC_%{version}
     %{ldflags_buildroot}
 popd
 
-for module in RANDOMIZER VISU LIGHT SIERPINSKY; do
+for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO; do
     cp -f GUI_SRC_%{version}/adm_local/unix/config_files/check_GUI.m4 ${module}_SRC_%{version}/adm_local/unix/config_files
 done
 
@@ -247,3 +252,39 @@ perl -pi								\
     -e 's|^(installed)=no|$1=yes|;'					\
     -e 's| %{buildroot}(%{_libdir}/salome/lib\w\.la)| $1|g;'		\
     %{buildroot}%{_libdir}/salome/*la
+
+mkdir -p %{buildroot}%{_datadir}/idl
+mv -f %{buildroot}%{_prefix}/idl %{buildroot}%{_datadir}
+
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{bindir}/HXX2SALOME_Test %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_prefix}/Tests %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_prefix}/salome_adm %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_prefix}/adm_local/cmake_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/cmake_files
+mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/unix/config_files
+
+#-----------------------------------------------------------------------
+%files
+%defattr(-,root,root)
+%dir %{buildroot}%{_datadir}/idl/salome
+%{buildroot}%{_datadir}/idl/salome/*
+%dir %{py_puresitedir}/%{name}
+%{py_puresitedir}/%{name}/*
+%dir %{py_puresitedir}/xdata
+%{py_puresitedir}/xdata/*
+%ifarch x86_64 ppc64
+  %dir %{py_platsitedir}/%{name}
+  %{py_platsitedir}/%{name}/*
+%endif
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/*
+%dir %{_datadir}/xdata
+%{_datadir}/xdata/*
+%dir %{_includedir}/%{name}
+%{_includedir}/%{name}/*
+%dir %{_libdir}/%{name}
+%{_libdir}/%{name}/*
+%dir %{_docdir}/%{name}
+%{_docdir}/%{name}/*
+%dir %{_bindir}/%{name}
+%{_bindir}/%{name}/*
