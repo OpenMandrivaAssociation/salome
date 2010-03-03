@@ -4,7 +4,8 @@
 # HXX2SALOMEDOC are only documentation files
 # TODO SAMPLES
 # TODO NETGENPLUGIN (package functional built (but latest version 4.9.11, not salome's required 4.5) but needs extra work with salome integration)
-%define		modules		GHS3DPRLPLUGIN MULTIPR XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+# TODO MULTIPR needs metis
+%define		modules		GHS3DPRLPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
 Group:		Sciences/Physics
@@ -206,7 +207,6 @@ done
 # fails if --with-gui option isn't either "yes" or "no", but properly
 # "detects" it based on other shell variables
 pushd LIGHT_SRC_%{version}
-    perl -pi								\
     sh ./build_configure
     %configure								\
 	--with-python-site=%{python_sitearch}				\
