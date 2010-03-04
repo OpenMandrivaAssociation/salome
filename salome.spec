@@ -254,20 +254,24 @@ perl -pi								\
     %{buildroot}%{_libdir}/salome/*la
 
 mkdir -p %{buildroot}%{_datadir}/idl
-mv -f %{buildroot}%{_prefix}/idl %{buildroot}%{_datadir}
-
+if [ -d %{buildroot}%{_prefix}/idl ]; then
+    mv -f %{buildroot}%{_prefix}/idl %{buildroot}%{_datadir}
+fi
 mkdir -p %{buildroot}%{_datadir}/%{name}
-mv -f %{buildroot}%{bindir}/HXX2SALOME_Test %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_bindir}/HXX2SALOME_Test %{buildroot}%{_datadir}/%{name}
 mv -f %{buildroot}%{_prefix}/Tests %{buildroot}%{_datadir}/%{name}
 mv -f %{buildroot}%{_prefix}/salome_adm %{buildroot}%{_datadir}/%{name}
 mv -f %{buildroot}%{_prefix}/adm_local/cmake_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/cmake_files
 mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/unix/config_files
 
+# apparently instaled by mistake (nodist, and in purebindir)
+rm -f %{buildroot}%{_bindir}/runTestMedCorba
+
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
-%dir %{buildroot}%{_datadir}/idl/salome
-%{buildroot}%{_datadir}/idl/salome/*
+%dir %{_datadir}/idl/salome
+%{_datadir}/idl/salome/*
 %dir %{py_puresitedir}/%{name}
 %{py_puresitedir}/%{name}/*
 %dir %{py_puresitedir}/xdata
@@ -288,3 +292,5 @@ mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadi
 %{_docdir}/%{name}/*
 %dir %{_bindir}/%{name}
 %{_bindir}/%{name}/*
+%dir %{_docdir}/xdata-0.7.3
+%{_docdir}/xdata-0.7.3/*
