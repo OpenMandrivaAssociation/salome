@@ -33,6 +33,7 @@ BuildRequires:	hdf5-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	omniorb-devel
+BuildRequires:	omninotify-devel
 BuildRequires:	opencascade-devel
 BuildRequires:	openmpi-devel
 BuildRequires:	python-omniidl
@@ -46,6 +47,8 @@ BuildRequires:	swig
 BuildRequires:	vtk-devel
 BuildRequires:	X11-devel
 %py_requires -d
+
+Requires:	omninotify
 
 Patch0:		lib_location_suffix.patch
 Patch1:		opencascade.patch
@@ -267,9 +270,31 @@ mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadi
 # apparently instaled by mistake (nodist, and in purebindir)
 rm -f %{buildroot}%{_bindir}/runTestMedCorba
 
+# something wrong in make install
+rm -f %{buildroot}%{py_puresitedir}/xdata/.dummy.py*
+
+cat > %{buildroot}%{_bindir}/runSalome << EOF
+#!/bin/sh
+
+export KERNEL_ROOT_DIR=%{_prefix}
+export PYCALCULATOR_ROOT_DIR=%{_prefix}
+export PYHELLO_ROOT_DIR=%{_prefix}
+export LIGHT_ROOT_DIR=%{_prefix}
+export COMPONENT_ROOT_DIR=%{_prefix}
+export MED_ROOT_DIR=%{_prefix}
+export VISU_ROOT_DIR=%{_prefix}
+export SMESH_ROOT_DIR=%{_prefix}
+export GEOM_ROOT_DIR=%{_prefix}
+export GUI_ROOT_DIR=%{_prefix}
+export YACS_ROOT_DIR=%{_prefix}
+%{_bindir}/%{name}/runSalome "\$@"
+EOF
+chmod +x %{buildroot}%{_bindir}/runSalome
+
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
+%{_bindir}/runSalome
 %dir %{_datadir}/idl/salome
 %{_datadir}/idl/salome/*
 %dir %{py_puresitedir}/%{name}
