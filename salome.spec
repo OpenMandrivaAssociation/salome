@@ -291,20 +291,26 @@ export YACS_ROOT_DIR=%{_prefix}
 EOF
 chmod +x %{buildroot}%{_bindir}/runSalome
 
+# some files in %py_puresitedir uses interfaces to load dynamic modules
+# but want the files in the same directory, not %py_platsitedir
+%ifarch x86_64 ppc64
+  pushd %{buildroot}%{py_puresitedir}
+    mv -f %{name}/* %{buildroot}%{py_platsitedir}/%{name}
+    mv -f xdata %{buildroot}%{py_platsitedir}
+    rmdir %{name} xdata
+  popd
+%endif
+
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
 %{_bindir}/runSalome
 %dir %{_datadir}/idl/salome
 %{_datadir}/idl/salome/*
-%dir %{py_puresitedir}/%{name}
-%{py_puresitedir}/%{name}/*
-%dir %{py_puresitedir}/xdata
-%{py_puresitedir}/xdata/*
-%ifarch x86_64 ppc64
-  %dir %{py_platsitedir}/%{name}
-  %{py_platsitedir}/%{name}/*
-%endif
+%dir %{py_platsitedir}/%{name}
+%{py_platsitedir}/%{name}/*
+%dir %{py_platsitedir}/xdata
+%{py_platsitedir}/xdata/*
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/*
 %dir %{_datadir}/xdata
