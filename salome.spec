@@ -71,6 +71,7 @@ Patch9:		FIXME.patch
 Patch10:	includeorder.patch
 
 Patch11:	prefix.patch
+Patch12:	runtime.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -105,6 +106,7 @@ life-cycle management of CAD models.
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -287,6 +289,7 @@ export SMESH_ROOT_DIR=%{_prefix}
 export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
+export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
 chmod +x %{buildroot}%{_bindir}/runSalome
