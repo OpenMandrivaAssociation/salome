@@ -295,6 +295,7 @@ export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
+cd %{py_puresitedir}
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
 chmod +x %{buildroot}%{_bindir}/runSalome
@@ -305,9 +306,13 @@ chmod +x %{buildroot}%{_bindir}/runSalome
   pushd %{buildroot}%{py_puresitedir}
     mv -f %{name}/* %{buildroot}%{py_platsitedir}/%{name}
     mv -f xdata %{buildroot}%{py_platsitedir}
-    rmdir %{name} xdata
+    rmdir %{name}
   popd
 %endif
+
+rm -f %{buildroot}%{py_puresitedir}/%{name}/*.a
+mv -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.* %{buildroot}%{py_puresitedir}/%{name}
+mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_puresitedir}/%{name}
 
 #-----------------------------------------------------------------------
 %files
