@@ -73,6 +73,10 @@ Patch10:	includeorder.patch
 Patch11:	prefix.patch
 Patch12:	runtime.patch
 
+# Build still stops in install of XDATA_SRC_5.1.3/src/XDATA2SALOME/tests
+# just don't build or install anything from there for now
+Patch13:	xdata-destdir.patch
+
 %description
 SALOME is an open-source software that provides a generic platform for
 Pre- and Post-Processing for numerical simulation. It is based on an open
@@ -107,6 +111,7 @@ life-cycle management of CAD models.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
