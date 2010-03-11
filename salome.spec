@@ -33,6 +33,7 @@ BuildRequires:	hdf5-devel
 BuildRequires:	libopencascade-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
+BuildRequires:	med-devel
 BuildRequires:	omniorb
 BuildRequires:	omniorb-devel
 BuildRequires:	omninotify-devel
@@ -168,45 +169,23 @@ for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO; do
     cp -f GUI_SRC_%{version}/adm_local/unix/config_files/check_GUI.m4 ${module}_SRC_%{version}/adm_local/unix/config_files
 done
 
-# MED is not parallel make safe
-# FIXME *possibly* adding libmedmemloader.la to LIBADD would correct the issue:
-##	mv -f .deps/_libParaMEDMEM_Swig_la-libParaMEDMEM_Swig_wrap.Tpo .deps/_libParaMEDMEM_Swig_la-libParaMEDMEM_Swig_wrap.Plo
-##	/bin/sh ../../libtool --tag=CXX   --mode=link x86_64-mandriva-linux-gnu-g++ -I/home/mandrake/rpm/BUILDROOT/salome-5.1.3-1mdv2010.1.x86_64/usr/include/salome -include SALOMEconfig.h -D_OCC64 -O2 -g -pipe -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fstack-protector --param=ssp-buffer-size=4 -g -D_DEBUG_  -g -Wparentheses -Wreturn-type -Wmissing-declarations -Wunused -pthread -module  -lhdf5  -L/usr/lib64/python2.6/config -lpython2.6 -ldl -lutil -pthread -L/usr/lib64 -lmpi_cxx -lmpi -lopen-rte -lopen-pal -libverbs -ltorque -lnuma -ldl -Wl,--export-dynamic -lnsl -lutil -lm -ldl ../MEDCoupling/libmedcoupling.la ../INTERP_KERNEL/libinterpkernel.la ../ParaMEDMEM/libparamedmem.la ../ParaMEDMEM/MEDLoader/libparamedmemmedloader.la -L/home/mandrake/rpm/BUILDROOT/salome-5.1.3-1mdv2010.1.x86_64/usr/lib64/salome -lSALOMELocalTrace -Wl,--as-needed -Wl,--no-undefined -Wl,-z,relro -Wl,-O1 -Wl,--as-needed -Wl,--no-undefined -Wl,-z,relro -Wl,-O1 -Wl,--as-needed -Wl,--no-undefined -Wl,-z,relro -Wl,-O1 -Xlinker -enable-new-dtags -o _libParaMEDMEM_Swig.la -rpath /usr/lib64/salome  _libParaMEDMEM_Swig_la-libParaMEDMEM_Swig_wrap.lo  -lnsl -lm -lrt -ldl  
-##	libtool: link: cannot find the library `../ParaMEDMEM/MEDLoader/libparamedmemmedloader.la' or unhandled argument `../ParaMEDMEM/MEDLoader/libparamedmemmedloader.la'
-##	make[2]: *** [_libParaMEDMEM_Swig.la] Error 1
-##	make[2]: Leaving directory `/home/mandrake/rpm/BUILD/src5.1.3/MED_SRC_5.1.3/src/ParaMEDMEM_Swig'
-##	make[1]: *** [all-recursive] Error 1
- pushd MED_SRC_%{version}
-    perl -pi								\
-	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
-	idl/.depidl
-    sh ./build_configure
-    %configure								\
-	--with-python-site=%{python_sitearch}				\
-	--with-python-site-exec=%{python_sitearch}			\
-	--with-openmpi=%{_prefix}					\
-	--with-kernel=$KERNEL_ROOT_DIR					\
-	--with-gui=$GUI_ROOT_DIR
-    make
-    %makeinstall_std
-    %{ldflags_buildroot}
-popd
-
-pushd GEOM_SRC_%{version}
-    perl -pi								\
-	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
-	idl/.depidl
-    sh ./build_configure
-    %configure								\
-	--with-python-site=%{python_sitearch}				\
-	--with-python-site-exec=%{python_sitearch}			\
-	--with-openmpi=%{_prefix}					\
-	--with-kernel=$KERNEL_ROOT_DIR					\
-	--with-gui=$GUI_ROOT_DIR
-    %make
-    %makeinstall_std
-    %{ldflags_buildroot}
-popd
+for module in MED GEOM; do
+    pushd MED_SRC_%{version}
+	perl -pi							\
+	    -e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+	    idl/.depidl
+	sh ./build_configure
+	%configure							\
+	    --with-python-site=%{python_sitearch}			\
+	    --with-python-site-exec=%{python_sitearch}			\
+	    --with-openmpi=%{_prefix}					\
+	    --with-kernel=$KERNEL_ROOT_DIR				\
+	    --with-gui=$GUI_ROOT_DIR
+	%make
+	%makeinstall_std
+	%{ldflags_buildroot}
+    popd
+done
 
 pushd SMESH_SRC_%{version}
     perl -pi								\
