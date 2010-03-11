@@ -32,9 +32,11 @@ BuildRequires:	hdf5
 BuildRequires:	hdf5-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
+BuildRequires:	omniorb
 BuildRequires:	omniorb-devel
 BuildRequires:	omninotify-devel
 BuildRequires:	opencascade-devel
+BuildRequires:	openmpi
 BuildRequires:	openmpi-devel
 BuildRequires:	python-omniidl
 BuildRequires:	python-omniorb
@@ -44,6 +46,8 @@ BuildRequires:	python-vtk-devel
 BuildRequires:	qt4-devel
 BuildRequires:	qscintilla-qt4-devel
 BuildRequires:	swig
+BuildRequires:	tetex-dvips
+BuildRequires:	tetex-latex
 BuildRequires:	vtk-devel
 BuildRequires:	X11-devel
 %py_requires -d
@@ -226,6 +230,10 @@ pushd LIGHT_SRC_%{version}
     %makeinstall_std
     %{ldflags_buildroot}
 popd
+
+# FIXME Avoid build failure
+# FIXME make install should create the directory
+mkdir -p %{buildroot}%{_datadir}/xdata/templates
 
 for module in %{modules}; do
     pushd ${module}_SRC_%{version}
