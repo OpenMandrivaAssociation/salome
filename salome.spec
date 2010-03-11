@@ -30,12 +30,17 @@ BuildRequires:	graphviz
 BuildRequires:	graphviz-devel
 BuildRequires:	hdf5
 BuildRequires:	hdf5-devel
+BuildRequires:	libopencascade-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	omniorb
 BuildRequires:	omniorb-devel
 BuildRequires:	omninotify-devel
-BuildRequires:	opencascade-devel
+
+# FIXME not really required, but matches the autoconf macro requirements
+# based on directory layout bellow $CASROOT
+BuildRequires:	opencascade
+
 BuildRequires:	openmpi
 BuildRequires:	openmpi-devel
 BuildRequires:	python-omniidl
