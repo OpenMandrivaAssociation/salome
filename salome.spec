@@ -135,7 +135,7 @@ pushd KERNEL_SRC_%{version}
     %configure								\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
-	--with-openmpi=%{_prefix}					\
+	--with-openmpi=%{_prefix}
     %make
     %makeinstall_std
     %{ldflags_buildroot}
@@ -149,7 +149,7 @@ pushd GUI_SRC_%{version}
     %configure								\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
-	--with-kernel=$KERNEL_ROOT_DIR					\
+	--with-kernel=$KERNEL_ROOT_DIR
     %make
     %makeinstall_std
     %{ldflags_buildroot}
