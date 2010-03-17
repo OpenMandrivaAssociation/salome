@@ -170,7 +170,7 @@ for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO; do
 done
 
 for module in MED GEOM; do
-    pushd MED_SRC_%{version}
+    pushd ${module}_SRC_%{version}
 	perl -pi							\
 	    -e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	    idl/.depidl
@@ -322,9 +322,9 @@ chmod +x %{buildroot}%{_bindir}/runSalome
   popd
 %endif
 
-rm -f %{buildroot}%{py_puresitedir}/%{name}/*.a
-mv -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.* %{buildroot}%{py_puresitedir}/%{name}
-mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_puresitedir}/%{name}
+rm -f %{buildroot}%{py_platsitedir}/%{name}/*.a
+mv -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.* %{buildroot}%{py_platsitedir}/%{name}
+mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_platsitedir}/%{name}
 
 #-----------------------------------------------------------------------
 %files
