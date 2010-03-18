@@ -34,6 +34,8 @@ BuildRequires:	libopencascade-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	med-devel
+BuildRequires:	metis
+BuildRequires:	metis-devel
 BuildRequires:	omniorb
 BuildRequires:	omniorb-devel
 BuildRequires:	omninotify-devel
@@ -51,6 +53,8 @@ BuildRequires:	python-sphinx
 BuildRequires:	python-vtk-devel
 BuildRequires:	qt4-devel
 BuildRequires:	qscintilla-qt4-devel
+BuildRequires:	scotch
+BuildRequires:	scotch-devel
 BuildRequires:	swig
 BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
@@ -179,6 +183,8 @@ for module in MED GEOM; do
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
 	    --with-openmpi=%{_prefix}					\
+	    --with-med2=%{_prefix}					\
+	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	%make
@@ -214,6 +220,8 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
 	    --with-openmpi=%{_prefix}					\
+	    --with-med2=%{_prefix}					\
+	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	%make
@@ -255,6 +263,8 @@ for module in %{modules}; do
 	    --with-qsci4-includes=%{qt4include}				\
 	    --with-qsci4-libraries=%{_libdir}				\
 	    --with-openmpi=%{_prefix}					\
+	    --with-med2=%{_prefix}					\
+	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	%make
