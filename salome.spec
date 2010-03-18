@@ -5,7 +5,7 @@
 # TODO SAMPLES
 # TODO NETGENPLUGIN (package functional built (but latest version 4.9.11, not salome's required 4.5) but needs extra work with salome integration)
 # TODO MULTIPR needs metis
-%define		modules		GHS3DPRLPLUGIN XDATA HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+%define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
 Group:		Sciences/Physics
@@ -243,9 +243,15 @@ pushd LIGHT_SRC_%{version}
     %{ldflags_buildroot}
 popd
 
-# FIXME Avoid build failure
-# FIXME make install should create the directory
+# FIXME Avoid build failure - not paralell make safe
 mkdir -p %{buildroot}%{_datadir}/xdata/templates
+mkdir -p XDATA_SRC_%{version}/lib/python%{py_ver}/site-packages/xdata
+pushd XDATA_SRC_%{version}
+    %configure
+    make
+    %makeinstall_std
+    %{ldflags_buildroot}
+popd
 
 for module in %{modules}; do
     pushd ${module}_SRC_%{version}
@@ -302,6 +308,9 @@ rm -f %{buildroot}%{_bindir}/runTestMedCorba
 # something wrong in make install
 rm -f %{buildroot}%{py_puresitedir}/xdata/.dummy.py*
 
+# FIXME need to patch some code because just setting PYTHONPATH is not
+# enough to get it to find some python packages (from C++ code linked
+# to libpython)
 cat > %{buildroot}%{_bindir}/runSalome << EOF
 #!/bin/sh
 
@@ -317,7 +326,7 @@ export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
-cd %{py_puresitedir}
+cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
 chmod +x %{buildroot}%{_bindir}/runSalome
