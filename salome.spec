@@ -1,10 +1,9 @@
 %define		srcv		src%{version}
 
-# FIXME need (at least) distene/{api,blsurf}.h for BLSURFPLUGIN module
-# HXX2SALOMEDOC are only documentation files
-# TODO SAMPLES
+# BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
+#	see BUILD/src5.1.3/BLSURFPLUGIN_SRC_5.1.3/README for details
 # TODO NETGENPLUGIN (package functional built (but latest version 4.9.11, not salome's required 4.5) but needs extra work with salome integration)
-# TODO MULTIPR needs metis
+# TODO MULTIPR
 %define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
@@ -39,11 +38,7 @@ BuildRequires:	metis-devel
 BuildRequires:	omniorb
 BuildRequires:	omniorb-devel
 BuildRequires:	omninotify-devel
-
-# FIXME not really required, but matches the autoconf macro requirements
-# based on directory layout bellow $CASROOT
 BuildRequires:	opencascade
-
 BuildRequires:	openmpi
 BuildRequires:	openmpi-devel
 BuildRequires:	python-omniidl
@@ -109,6 +104,13 @@ calculation results.
 SALOME can also be used as a platform for integration of the external
 third-party numerical codes to produce a new application for the full
 life-cycle management of CAD models.
+
+%package	samples
+Group:		Sciences/Physics
+Summary:	Sample files for salome-platform
+
+%description	samples
+This package contains salome-platform samples.
 
 #-----------------------------------------------------------------------
 %prep
@@ -349,6 +351,10 @@ rm -f %{buildroot}%{py_platsitedir}/%{name}/*.a
 mv -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.* %{buildroot}%{py_platsitedir}/%{name}
 mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_platsitedir}/%{name}
 
+mkdir -p %{buildroot}%{_datadir}/%{name}/samples
+cp -far SAMPLES_SRC_%{version}/* %{buildroot}%{_datadir}/%{name}/samples
+cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
+
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
@@ -360,7 +366,10 @@ mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_platsite
 %dir %{py_platsitedir}/xdata
 %{py_platsitedir}/xdata/*
 %dir %{_datadir}/%{name}
-%{_datadir}/%{name}/*
+%dir %{_datadir}/%{name}/resources
+%{_datadir}/%{name}/resources/*
+%dir %{_datadir}/%{name}/salome_adm
+%{_datadir}/%{name}/salome_adm/*
 %dir %{_datadir}/xdata
 %{_datadir}/xdata/*
 %dir %{_includedir}/%{name}
@@ -373,3 +382,17 @@ mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_platsite
 %{_bindir}/%{name}/*
 %dir %{_docdir}/xdata-0.7.3
 %{_docdir}/xdata-0.7.3/*
+
+#-----------------------------------------------------------------------
+%files		samples
+%defattr(-,root,root)
+%dir %{_datadir}/%{name}/HXX2SALOME_Test
+%{_datadir}/%{name}/HXX2SALOME_Test/*
+%dir %{_datadir}/%{name}/samples
+%{_datadir}/%{name}/samples/*
+%dir %{_datadir}/%{name}/Tests
+%{_datadir}/%{name}/Tests/*
+%dir %{_datadir}/%{name}/yacssamples
+%{_datadir}/%{name}/yacssamples/*
+%dir %{_datadir}/%{name}/yacssupervsamples
+%{_datadir}/%{name}/yacssupervsamples/*
