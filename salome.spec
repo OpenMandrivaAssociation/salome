@@ -63,6 +63,8 @@ BuildRequires:	X11-devel
 %py_requires -d
 
 Requires:	omninotify
+Requires:	omniorb
+Requires:	python-omniorb
 
 Patch0:		lib_location_suffix.patch
 Patch1:		opencascade.patch
@@ -281,7 +283,7 @@ done
 
 #-----------------------------------------------------------------------
 %clean
-rm -rf %{buildroot}
+#rm -rf %{buildroot}
 
 #-----------------------------------------------------------------------
 %install
@@ -325,6 +327,8 @@ export SMESH_ROOT_DIR=%{_prefix}
 export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
+export CASROOT=%{_datadir}/opencascade
+export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
 cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
