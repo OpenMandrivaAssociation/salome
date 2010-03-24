@@ -57,6 +57,7 @@ BuildRequires:	vtk-devel
 BuildRequires:	X11-devel
 %py_requires -d
 
+Requires:	libopencascade
 Requires:	omninotify
 Requires:	omniorb
 Requires:	python-omniorb
@@ -330,7 +331,7 @@ export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
 export CASROOT=%{_datadir}/opencascade
-export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so
+export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so.0.0.0
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
 cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
