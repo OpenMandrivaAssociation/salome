@@ -58,8 +58,10 @@ BuildRequires:	X11-devel
 %py_requires -d
 
 Requires:	libopencascade
+Requires:	libopencascade-devel
 Requires:	omninotify
 Requires:	omniorb
+Requires:	opencascade
 Requires:	python-omniorb
 
 Patch0:		lib_location_suffix.patch
