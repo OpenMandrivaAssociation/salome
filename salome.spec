@@ -163,15 +163,15 @@ pushd KERNEL_SRC_%{version}
 popd
 
 pushd GUI_SRC_%{version}
+    sh ./build_configure
     perl -pi								\
 	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
-    sh ./build_configure
     %configure								\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
-    %make
+    make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -182,10 +182,10 @@ done
 
 for module in MED GEOM; do
     pushd ${module}_SRC_%{version}
+	sh ./build_configure
 	perl -pi							\
 	    -e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	    idl/.depidl
-	sh ./build_configure
 	%configure							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
@@ -201,10 +201,10 @@ for module in MED GEOM; do
 done
 
 pushd SMESH_SRC_%{version}
+    sh ./build_configure
     perl -pi								\
 	-e 's@ ((SALOME\w|GEOM_Gen)\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
-    sh ./build_configure
     %configure								\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
@@ -217,12 +217,12 @@ popd
 
 for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
     pushd ${module}_SRC_%{version}
+	sh ./build_configure
 	if [ -f idl/.depidl ]; then					\
 	    perl -pi							\
 		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
 	fi
-	sh ./build_configure
 	%configure							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
@@ -262,13 +262,13 @@ popd
 
 for module in %{modules}; do
     pushd ${module}_SRC_%{version}
+	if [ -f ./build_configure ]; then
+	    sh ./build_configure
+	fi
 	if [ -f idl/.depidl ]; then
 	    perl -pi							\
 		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
-	fi
-	if [ -f ./build_configure ]; then
-	    sh ./build_configure
 	fi
 	%configure							\
 	    --with-python-site=%{python_sitearch}			\
