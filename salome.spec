@@ -335,6 +335,14 @@ export YACS_ROOT_DIR=%{_prefix}
 export CASROOT=%{_datadir}/opencascade
 export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so.0.0.0
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
+
+# Extra debug information
+export MESA_DEBUG=FP
+export LIBGL_DEBUG=verbose
+
+# Force software rendering
+export LIBGL_ALWAYS_INDIRECT=true
+
 cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
