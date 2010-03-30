@@ -9,7 +9,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.3
-Release:	%mkrel 2
+Release:	%mkrel 3
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -318,6 +318,7 @@ rm -f %{buildroot}%{py_puresitedir}/xdata/.dummy.py*
 # FIXME need to patch some code because just setting PYTHONPATH is not
 # enough to get it to find some python packages (from C++ code linked
 # to libpython)
+#-----------------------------------------------------------------------
 cat > %{buildroot}%{_bindir}/runSalome << EOF
 #!/bin/sh
 
@@ -347,6 +348,20 @@ cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
 chmod +x %{buildroot}%{_bindir}/runSalome
+#-----------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
+cat > %{buildroot}%{_bindir}/killSalome << EOF
+#!/bin/sh
+
+PIDS=`ps x |
+egrep '\<(notifd|SALOME_Session_Server|SALOME_LauncherServer|FactoryServerPy|omniNames)\>' |
+grep -v egrep |
+awk "{ print \$1; }"`
+[ -z "\$PIDS" ] || kill \$PIDS
+EOF
+chmod +x %{buildroot}%{_bindir}/killSalome
+#-----------------------------------------------------------------------
 
 # some files in %py_puresitedir uses interfaces to load dynamic modules
 # but want the files in the same directory, not %py_platsitedir
@@ -370,6 +385,7 @@ cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
 %files
 %defattr(-,root,root)
 %{_bindir}/runSalome
+%{_bindir}/killSalome
 %dir %{_datadir}/idl/salome
 %{_datadir}/idl/salome/*
 %dir %{py_platsitedir}/%{name}
