@@ -163,7 +163,7 @@ pushd KERNEL_SRC_%{version}
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-openmpi=%{_prefix}
-    %make
+    make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -200,7 +200,7 @@ for module in MED GEOM; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
-	%make
+	make
 	%makeinstall_std
 	%{ldflags_buildroot}
     popd
@@ -216,7 +216,7 @@ pushd SMESH_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR					\
 	--with-gui=$GUI_ROOT_DIR
-    %make
+    make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -237,7 +237,7 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
-	%make
+	make
 	%makeinstall_std
 	%{ldflags_buildroot}
     popd
@@ -251,7 +251,7 @@ pushd LIGHT_SRC_%{version}
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
-    %make
+    make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -286,7 +286,7 @@ for module in %{modules}; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
-	%make
+	make
 	%makeinstall_std
 	%{ldflags_buildroot}
     popd
