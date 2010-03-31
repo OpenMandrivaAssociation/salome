@@ -15,8 +15,14 @@ License:	GPL
 URL:		http://www.salome-platform.org
 # http://www.salome-platform.org/downloads/salome-v5.1.3/DownloadDistr?platform=Sources&version=5.1.3
 Source0:	src5.1.3.tar.gz
+
+# Not really required, but not all documentation is regenerated, so,
+# for easier acess, keep it in the srpm
 # http://www.salome-platform.org/downloads/salome-v5.1.3/DownloadDistr?platform=Documentation&version=5.1.3
 Source1:	doc5.1.3.tar.gz
+
+Source2:	salome.png
+Source3:	salome32.png
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:	bison flex
@@ -381,6 +387,21 @@ mkdir -p %{buildroot}%{_datadir}/%{name}/samples
 cp -far SAMPLES_SRC_%{version}/* %{buildroot}%{_datadir}/%{name}/samples
 cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
 
+install -m644 -D %{SOURCE2} %{buildroot}%{_miconsdir}/%{name}.png
+install -m644 -D %{SOURCE3} %{buildroot}%{_iconsdir}/%{name}.png
+install -m644 -D %{SOURCE3} %{buildroot}%{_datadir}/pixmaps/%{name}.png
+mkdir -p %{buildroot}%{_datadir}/applications
+cat > %{buildroot}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
+[Desktop Entry]
+Name=Salome
+Comment=Pre- and Post-Processing for numerical simulation
+Exec=runSalome
+Icon=%{name}
+Terminal=false
+Type=Application
+Categories=Science;Physics;
+EOF
+
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
@@ -409,6 +430,10 @@ cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
 %{_bindir}/%{name}/*
 %dir %{_docdir}/xdata-0.7.3
 %{_docdir}/xdata-0.7.3/*
+%{_miconsdir}/%{name}.png
+%{_iconsdir}/%{name}.png
+%{_datadir}/pixmaps/%{name}.png
+%{_datadir}/applications/mandriva-%{name}.desktop
 
 #-----------------------------------------------------------------------
 %files		samples
