@@ -7,8 +7,7 @@
 %define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
 
 Name:		salome
-#Group:		Sciences/Physics
-Group:		Sciences/Other
+Group:		Sciences/Physics
 Version:	5.1.3
 Release:	%mkrel 4
 Summary:	Pre- and Post-Processing for numerical simulation
