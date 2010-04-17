@@ -2,9 +2,8 @@
 
 # BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
 #	see BUILD/src5.1.3/BLSURFPLUGIN_SRC_5.1.3/README for details
-# TODO NETGENPLUGIN (package functional built (but latest version 4.9.11, not salome's required 4.5) but needs extra work with salome integration)
 # TODO MULTIPR
-%define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO
+%define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO NETGENPLUGIN
 
 Name:		salome
 Group:		Sciences/Physics
@@ -23,6 +22,10 @@ Source1:	doc5.1.3.tar.gz
 
 Source2:	salome.png
 Source3:	salome32.png
+
+# http://www.salome-platform.org/forum/forum_9/thread_1416
+Source4:	netgen-4.5_SRC.tar.gz
+
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:	bison flex
@@ -59,6 +62,7 @@ BuildRequires:	scotch-devel
 BuildRequires:	swig
 BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
+BuildRequires:	togl
 BuildRequires:	vtk-devel
 BuildRequires:	X11-devel
 %py_requires -d
@@ -97,6 +101,8 @@ Patch12:	runtime.patch
 # just don't build or install anything from there for now
 Patch13:	xdata-destdir.patch
 
+Patch14:	netgen4.5ForSalome.patch
+
 %description
 SALOME is an open-source software that provides a generic platform for
 Pre- and Post-Processing for numerical simulation. It is based on an open
@@ -124,6 +130,7 @@ This package contains salome-platform samples.
 #-----------------------------------------------------------------------
 %prep
 %setup -q -n %{srcv}
+%setup -q -n %{srcv} -T -D -a 4
 
 %patch0 -p1
 %patch1 -p1
@@ -139,6 +146,7 @@ This package contains salome-platform samples.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -148,6 +156,26 @@ cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC
 %define ldflags_buildroot	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{buildroot}$1|g;' %{buildroot}%{_libdir}/salome/*la
 
 %build
+
+%ifarch X86_64 ppc64
+    export CXXFLAGS="$CXXFLAGS -fPIC"
+%endif
+
+export CASROOT=%{_datadir}/opencascade
+
+# lots of hacks here, to resolve symbols and such...
+pushd netgen-4.5_SRC
+    sh makeForSalome.sh
+    pushd ngtcltk
+	g++ $CXXFLAGS -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
+%ifarch X86_64 ppc64
+	cp -f ngpkg.o ../install/lib/LINUX64
+%else
+	cp -f ngpkg.o ../install/lib/LINUX
+%endif
+    popd
+popd
+
 export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
 export GUI_ROOT_DIR=%{buildroot}%{_prefix}
 export MED_ROOT_DIR=%{buildroot}%{_prefix}
@@ -155,7 +183,6 @@ export GEOM_ROOT_DIR=%{buildroot}%{_prefix}
 export SMESH_ROOT_DIR=%{buildroot}%{_prefix}
 export RANDOMIZER_ROOT_DIR=%{buildroot}%{_prefix}
 export VISU_ROOT_DIR=%{buildroot}%{_prefix}
-export CASROOT=%{_datadir}/opencascade
 
 pushd KERNEL_SRC_%{version}
     sh ./build_configure
@@ -221,6 +248,8 @@ pushd SMESH_SRC_%{version}
     %{ldflags_buildroot}
 popd
 
+cp -f SMESH_SRC_%{version}/adm_local/unix/config_files/check_GUI.m4 NETGENPLUGIN_SRC_%{version}/adm_local/unix/config_files
+
 for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
     pushd ${module}_SRC_%{version}
 	sh ./build_configure
@@ -285,7 +314,8 @@ for module in %{modules}; do
 	    --with-med2=%{_prefix}					\
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
-	    --with-gui=$GUI_ROOT_DIR
+	    --with-gui=$GUI_ROOT_DIR					\
+	    --with-netgen=%{_builddir}/src5.1.3/netgen-4.5_SRC/install
 	make
 	%makeinstall_std
 	%{ldflags_buildroot}
