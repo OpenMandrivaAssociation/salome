@@ -8,7 +8,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.3
-Release:	%mkrel 4
+Release:	%mkrel 5
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -167,7 +167,7 @@ export CASROOT=%{_datadir}/opencascade
 pushd netgen-4.5_SRC
     sh makeForSalome.sh
     pushd ngtcltk
-	g++ $CXXFLAGS -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
+	g++ $CXXFLAGS -DOPENGL=1 -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
 %ifarch X86_64 ppc64
 	cp -f ngpkg.o ../install/lib/LINUX64
 %else
@@ -209,7 +209,7 @@ pushd GUI_SRC_%{version}
     %{ldflags_buildroot}
 popd
 
-for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO; do
+for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO NETGENPLUGIN; do
     cp -f GUI_SRC_%{version}/adm_local/unix/config_files/check_GUI.m4 ${module}_SRC_%{version}/adm_local/unix/config_files
 done
 
@@ -247,8 +247,6 @@ pushd SMESH_SRC_%{version}
     %makeinstall_std
     %{ldflags_buildroot}
 popd
-
-cp -f SMESH_SRC_%{version}/adm_local/unix/config_files/check_GUI.m4 NETGENPLUGIN_SRC_%{version}/adm_local/unix/config_files
 
 for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
     pushd ${module}_SRC_%{version}
