@@ -103,6 +103,9 @@ Patch13:	xdata-destdir.patch
 
 Patch14:	netgen4.5ForSalome.patch
 
+# https://bugzilla.gnome.org/show_bug.cgi?id=616344
+Patch15:	workaround-doxygen-1.6.3-bug.patch
+
 %description
 SALOME is an open-source software that provides a generic platform for
 Pre- and Post-Processing for numerical simulation. It is based on an open
@@ -147,6 +150,10 @@ This package contains salome-platform samples.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+
+if [ `rpm -q --qf "%%{version}" doxygen` = "1.6.3" ]; then
+%patch15 -p1
+fi
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
