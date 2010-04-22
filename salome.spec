@@ -398,7 +398,7 @@ cat > %{buildroot}%{_bindir}/killSalome << EOF
 PIDS=\`ps x |
 egrep '\<(notifd|SALOME_Session_Server|SALOME_LauncherServer|FactoryServerPy|omniNames)\>' |
 grep -v egrep |
-awk "{ print \$1; }"\`
+awk '{ print \$1; }'\`
 [ -z "\$PIDS" ] || kill \$PIDS
 EOF
 chmod +x %{buildroot}%{_bindir}/killSalome
