@@ -3,12 +3,12 @@
 # BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
 #	see BUILD/src5.1.3/BLSURFPLUGIN_SRC_5.1.3/README for details
 # TODO MULTIPR
-%define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO NETGENPLUGIN
+%define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS MULTIPR HexoticPLUGIN PYHELLO NETGENPLUGIN
 
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.3
-Release:	%mkrel 5
+Release:	%mkrel 6
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -101,10 +101,13 @@ Patch12:	runtime.patch
 # just don't build or install anything from there for now
 Patch13:	xdata-destdir.patch
 
-Patch14:	netgen4.5ForSalome.patch
+Patch14:	scotch.patch
+Patch15:	metis.patch
+
+Patch16:	netgen4.5ForSalome.patch
 
 # https://bugzilla.gnome.org/show_bug.cgi?id=616344
-Patch15:	workaround-doxygen-1.6.3-bug.patch
+Patch17:	workaround-doxygen-1.6.3-bug.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -150,9 +153,11 @@ This package contains salome-platform samples.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
+%patch16 -p1
 
 if [ `rpm -q --qf "%%{version}" doxygen` = "1.6.3" ]; then
-%patch15 -p1
+%patch17 -p1
 fi
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
