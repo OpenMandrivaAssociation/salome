@@ -2,7 +2,6 @@
 
 # BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
 #	see BUILD/src5.1.3/BLSURFPLUGIN_SRC_5.1.3/README for details
-# TODO MULTIPR
 %define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS MULTIPR HexoticPLUGIN PYHELLO NETGENPLUGIN
 
 Name:		salome
