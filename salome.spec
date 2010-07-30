@@ -7,7 +7,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.3
-Release:	%mkrel 8
+Release:	%mkrel 9
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
