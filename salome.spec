@@ -76,9 +76,6 @@ Patch0:		lib_location_suffix.patch
 Patch1:		opencascade.patch
 Patch2:		underlink.patch
 Patch3:		format.patch
-Patch4:		paramnames.patch
-Patch5:		libc.patch
-Patch6:		libxml2.patch
 Patch7:		destdir.patch
 Patch8:		undefined.patch
 
@@ -136,13 +133,10 @@ This package contains salome-platform samples.
 %setup -q -n %{srcv}
 %setup -q -n %{srcv} -T -D -a 4
 
-%patch0 -p1
+%patch0 -p1 -b .lib_suff
 %patch1 -p1
-%patch2 -p1
+%patch2 -p1 -b .link
 %patch3 -p1
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
