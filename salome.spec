@@ -140,7 +140,7 @@ This package contains salome-platform samples.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch10 -p1
+%patch10 -p1 -b .include
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
@@ -149,7 +149,7 @@ This package contains salome-platform samples.
 %patch16 -p1
 
 if [ `rpm -q --qf "%%{version}" doxygen` = "1.6.3" ]; then
-%patch17 -p1
+#%patch17 -p1
 fi
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
@@ -190,7 +190,7 @@ export VISU_ROOT_DIR=%{buildroot}%{_prefix}
 
 pushd KERNEL_SRC_%{version}
     sh ./build_configure
-    %configure								\
+    %configure2_5x							\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-openmpi=%{_prefix}
@@ -204,7 +204,7 @@ pushd GUI_SRC_%{version}
     perl -pi								\
 	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
-    %configure								\
+    %configure2_5x							\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
@@ -223,7 +223,7 @@ for module in MED GEOM; do
 	perl -pi							\
 	    -e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	    idl/.depidl
-	%configure							\
+	%configure2_5x							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
 	    --with-openmpi=%{_prefix}					\
@@ -242,7 +242,7 @@ pushd SMESH_SRC_%{version}
     perl -pi								\
 	-e 's@ ((SALOME\w|GEOM_Gen)\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
-    %configure								\
+    %configure2_5x							\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR					\
@@ -260,7 +260,7 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
 	fi
-	%configure							\
+	%configure2_5x							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
 	    --with-openmpi=%{_prefix}					\
@@ -278,7 +278,7 @@ done
 # "detects" it based on other shell variables
 pushd LIGHT_SRC_%{version}
     sh ./build_configure
-    %configure								\
+    %configure2_5x							\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
@@ -291,7 +291,7 @@ popd
 mkdir -p %{buildroot}%{_datadir}/xdata/templates
 mkdir -p XDATA_SRC_%{version}/lib/python%{py_ver}/site-packages/xdata
 pushd XDATA_SRC_%{version}
-    %configure
+    %configure2_5x
     make
     %makeinstall_std
     %{ldflags_buildroot}
@@ -307,7 +307,7 @@ for module in %{modules}; do
 		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
 	fi
-	%configure							\
+	%configure2_5x							\
 	    --with-python-site=%{python_sitearch}			\
 	    --with-python-site-exec=%{python_sitearch}			\
 	    --with-qsci4-includes=%{qt4include}				\
