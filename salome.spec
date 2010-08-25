@@ -6,18 +6,17 @@
 
 Name:		salome
 Group:		Sciences/Physics
-Version:	5.1.3
-Release:	%mkrel 11
+Version:	5.1.4
+Release:	%mkrel 1
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
-# http://www.salome-platform.org/downloads/salome-v5.1.3/DownloadDistr?platform=Sources&version=5.1.3
-Source0:	src5.1.3.tar.gz
+Source0:	http://files.opencascade.com/Salome/Salome%{version}/src%{version}.tar.gz
 
 # Not really required, but not all documentation is regenerated, so,
 # for easier acess, keep it in the srpm
 # http://www.salome-platform.org/downloads/salome-v5.1.3/DownloadDistr?platform=Documentation&version=5.1.3
-Source1:	doc5.1.3.tar.gz
+Source1:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.gz
 
 Source2:	salome.png
 Source3:	salome32.png
