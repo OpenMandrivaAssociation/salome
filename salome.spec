@@ -157,6 +157,10 @@ fi
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
 
+# Changes necessary for gcc-4.5
+sed -e "s|BRepAdaptor_Surface::BRepAdaptor_Surface|BRepAdaptor_Surface|" \
+	-i SMESH_SRC_5.1.4/src/PluginUtils/GeomSelectionTools.cxx
+
 #-----------------------------------------------------------------------
 # link with libraries in buildroot, not in _libdir
 %define ldflags_buildroot	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{buildroot}$1|g;' %{buildroot}%{_libdir}/salome/*la
