@@ -63,7 +63,7 @@ BuildRequires:	tetex-latex
 BuildRequires:	togl
 BuildRequires:	vtk-devel
 BuildRequires:	X11-devel
-%py_requires -d
+BuildRequires:	python-devel
 
 Requires:	libopencascade
 Requires:	libopencascade-devel
@@ -76,6 +76,7 @@ Patch0:		lib_location_suffix.patch
 Patch1:		opencascade.patch
 Patch2:		underlink.patch
 Patch3:		format.patch
+Patch4:		constructor-build.patch
 Patch7:		destdir.patch
 Patch8:		undefined.patch
 
@@ -137,6 +138,7 @@ This package contains salome-platform samples.
 %patch1 -p1
 %patch2 -p1 -b .link
 %patch3 -p1
+%patch4 -p1
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
