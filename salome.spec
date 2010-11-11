@@ -21,9 +21,6 @@ Source1:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.
 Source2:	salome.png
 Source3:	salome32.png
 
-# http://www.salome-platform.org/forum/forum_9/thread_1416
-Source4:	netgen-4.5_SRC.tar.gz
-
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:	bison flex
@@ -100,8 +97,6 @@ Patch13:	xdata-destdir.patch
 Patch14:	scotch.patch
 Patch15:	metis.patch
 
-Patch16:	netgen4.5ForSalome.patch
-
 # https://bugzilla.gnome.org/show_bug.cgi?id=616344
 Patch17:	workaround-doxygen-1.6.3-bug.patch
 
@@ -132,7 +127,6 @@ This package contains salome-platform samples.
 #-----------------------------------------------------------------------
 %prep
 %setup -q -n %{srcv}
-%setup -q -n %{srcv} -T -D -a 4
 
 %patch0 -p1 -b .lib_suff
 %patch1 -p1
@@ -148,7 +142,6 @@ This package contains salome-platform samples.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
-%patch16 -p1
 
 %if 0
 if [ `rpm -q --qf "%%{version}" doxygen` = "1.6.3" ]; then
@@ -158,10 +151,6 @@ fi
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
-
-# Changes necessary for gcc-4.5
-sed -e "s|BRepAdaptor_Surface::BRepAdaptor_Surface|BRepAdaptor_Surface|" \
-	-i SMESH_SRC_5.1.4/src/PluginUtils/GeomSelectionTools.cxx
 
 #-----------------------------------------------------------------------
 # link with libraries in buildroot, not in _libdir
@@ -174,20 +163,6 @@ sed -e "s|BRepAdaptor_Surface::BRepAdaptor_Surface|BRepAdaptor_Surface|" \
 %endif
 
 export CASROOT=%{_datadir}/opencascade
-
-# lots of hacks here, to resolve symbols and such...
-pushd netgen-4.5_SRC
-    sh makeForSalome.sh
-    pushd ngtcltk
-	g++ $CXXFLAGS -DOPENGL=1 -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
-%ifarch X86_64 ppc64
-	cp -f ngpkg.o ../install/lib/LINUX64
-%else
-	cp -f ngpkg.o ../install/lib/LINUX
-%endif
-    popd
-popd
-
 export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
 export GUI_ROOT_DIR=%{buildroot}%{_prefix}
 export MED_ROOT_DIR=%{buildroot}%{_prefix}
@@ -202,7 +177,7 @@ pushd KERNEL_SRC_%{version}
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-openmpi=%{_prefix}
-    make
+    %make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -216,7 +191,7 @@ pushd GUI_SRC_%{version}
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
-    make
+    %make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -239,7 +214,7 @@ for module in MED GEOM; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
-	make
+	%make
 	%makeinstall_std
 	%{ldflags_buildroot}
     popd
@@ -255,7 +230,7 @@ pushd SMESH_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR					\
 	--with-gui=$GUI_ROOT_DIR
-    make
+    %make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -276,7 +251,7 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
-	make
+	%make
 	%makeinstall_std
 	%{ldflags_buildroot}
     popd
@@ -290,7 +265,7 @@ pushd LIGHT_SRC_%{version}
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
-    make
+    %make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -300,7 +275,7 @@ mkdir -p %{buildroot}%{_datadir}/xdata/templates
 mkdir -p XDATA_SRC_%{version}/lib/python%{py_ver}/site-packages/xdata
 pushd XDATA_SRC_%{version}
     %configure2_5x
-    make
+    %make
     %makeinstall_std
     %{ldflags_buildroot}
 popd
@@ -325,8 +300,8 @@ for module in %{modules}; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR					\
-	    --with-netgen=%{_builddir}/src5.1.3/netgen-4.5_SRC/install
-	make
+	    --with-netgen=%{buildroot}%{_prefix}
+	%make
 	%makeinstall_std
 	%{ldflags_buildroot}
     popd
