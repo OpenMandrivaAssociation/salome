@@ -7,7 +7,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.4
-Release:	%mkrel 2
+Release:	%mkrel 1
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -20,6 +20,12 @@ Source1:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.
 
 Source2:	salome.png
 Source3:	salome32.png
+
+# http://www.salome-platform.org/forum/forum_9/thread_1416 	 
+Source4:	netgen-4.5_SRC.tar.gz
+
+# (missing?) in 5.1.4 tarball
+Source5:	geompy.py
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -97,6 +103,8 @@ Patch13:	xdata-destdir.patch
 Patch14:	scotch.patch
 Patch15:	metis.patch
 
+Patch16:	netgen4.5ForSalome.patch
+
 # https://bugzilla.gnome.org/show_bug.cgi?id=616344
 Patch17:	workaround-doxygen-1.6.3-bug.patch
 
@@ -126,7 +134,7 @@ This package contains salome-platform samples.
 
 #-----------------------------------------------------------------------
 %prep
-%setup -q -n %{srcv}
+%setup -q -n %{srcv} -D -a 4
 
 %patch0 -p1 -b .lib_suff
 %patch1 -p1
@@ -142,15 +150,14 @@ This package contains salome-platform samples.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
-%if 0
-if [ `rpm -q --qf "%%{version}" doxygen` = "1.6.3" ]; then
+echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6.3" &&
 %patch17 -p1
-fi
-%endif
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
+cp %{SOURCE5} GEOM_SRC_%{version}/src/GEOM_SWIG
 
 #-----------------------------------------------------------------------
 # link with libraries in buildroot, not in _libdir
@@ -158,11 +165,24 @@ cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC
 
 %build
 
-%ifarch X86_64 ppc64
+%ifarch x86_64 ppc64
     export CXXFLAGS="$CXXFLAGS -fPIC"
 %endif
 
 export CASROOT=%{_datadir}/opencascade
+
+pushd netgen-4.5_SRC
+    sh makeForSalome.sh
+    pushd ngtcltk
+	g++ $CXXFLAGS -DOPENGL=1 -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
+%ifarch x86_64 ppc64
+	cp -f ngpkg.o ../install/lib/LINUX64
+%else
+	cp -f ngpkg.o ../install/lib/LINUX
+%endif
+     popd
+popd
+
 export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
 export GUI_ROOT_DIR=%{buildroot}%{_prefix}
 export MED_ROOT_DIR=%{buildroot}%{_prefix}
@@ -280,7 +300,9 @@ pushd XDATA_SRC_%{version}
     %{ldflags_buildroot}
 popd
 
-for module in %{modules}; do
+export KERNEL_CXXFLAGS=$KERNEL_ROOT_DIR/include/salome
+##for module in %{modules}; do
+for module in NETGENPLUGIN; do
     pushd ${module}_SRC_%{version}
 	if [ -f ./build_configure ]; then
 	    sh ./build_configure
@@ -300,7 +322,7 @@ for module in %{modules}; do
 	    --with-scotch=%{_prefix}					\
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR					\
-	    --with-netgen=%{buildroot}%{_prefix}
+	    --with-netgen=%{_builddir}/src%{version}/netgen-4.5_SRC/install
 	%make
 	%makeinstall_std
 	%{ldflags_buildroot}
