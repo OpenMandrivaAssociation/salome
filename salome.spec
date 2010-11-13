@@ -301,8 +301,7 @@ pushd XDATA_SRC_%{version}
 popd
 
 export KERNEL_CXXFLAGS=$KERNEL_ROOT_DIR/include/salome
-##for module in %{modules}; do
-for module in NETGENPLUGIN; do
+for module in %{modules}; do
     pushd ${module}_SRC_%{version}
 	if [ -f ./build_configure ]; then
 	    sh ./build_configure
