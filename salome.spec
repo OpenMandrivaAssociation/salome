@@ -152,7 +152,7 @@ This package contains salome-platform samples.
 %patch15 -p1
 %patch16 -p1
 
-echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6.3" &&
+echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6" &&
 %patch17 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
