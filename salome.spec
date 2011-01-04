@@ -1,31 +1,28 @@
 %define		srcv		src%{version}
 
 # BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
-#	see BUILD/src5.1.3/BLSURFPLUGIN_SRC_5.1.3/README for details
+#	see BUILD/src5.1.5/BLSURFPLUGIN_SRC_5.1.5/README for details
 %define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS MULTIPR HexoticPLUGIN PYHELLO NETGENPLUGIN
 
 Name:		salome
 Group:		Sciences/Physics
-Version:	5.1.4
+Version:	5.1.5
 Release:	%mkrel 1
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
 Source0:	http://files.opencascade.com/Salome/Salome%{version}/src%{version}.tar.gz
-
-# Not really required, but not all documentation is regenerated, so,
-# for easier acess, keep it in the srpm
-# http://www.salome-platform.org/downloads/salome-v5.1.3/DownloadDistr?platform=Documentation&version=5.1.3
-Source1:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.gz
-
-Source2:	salome.png
-Source3:	salome32.png
-
 # http://www.salome-platform.org/forum/forum_9/thread_1416 	 
-Source4:	netgen-4.5_SRC.tar.gz
+Source1:	netgen-4.5_SRC.tar.gz
 
-# (missing?) in 5.1.4 tarball
-Source5:	geompy.py
+# Not really required, kept in case changing to no longer regenerate
+# documentation, as done in some packages to save build system time,
+# also, the normal build may not rebuild all documentation, or may
+# have some issues like the doxygen double underscore issue
+Source2:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.gz
+
+Source3:	salome.png
+Source4:	salome32.png
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -80,33 +77,29 @@ Patch1:		opencascade.patch
 Patch2:		underlink.patch
 Patch3:		format.patch
 Patch4:		constructor-build.patch
-Patch7:		destdir.patch
-Patch8:		undefined.patch
+Patch5:		destdir.patch
+Patch6:		undefined.patch
 
 # Weird linking problem; this patch just prints the link failure message and
 # calls abort if the code would ever follow the path with the undefined symbol...
-Patch9:		FIXME.patch
+Patch7:		FIXME.patch
 
 #  There is also a include order change in underlink.patch
 #  The reason is YACS code using Node.hxx from INTERP_KERNEL, and not
 # YACS/src/engine due to adding -I$(KERNEL_ROOT_DIR)/include/salome before
 # "local" includes
-Patch10:	includeorder.patch
+Patch8:		includeorder.patch
 
-Patch11:	prefix.patch
-Patch12:	runtime.patch
+Patch9:		prefix.patch
+Patch10:	runtime.patch
 
-# Build still stops in install of XDATA_SRC_5.1.3/src/XDATA2SALOME/tests
-# just don't build or install anything from there for now
-Patch13:	xdata-destdir.patch
+Patch11:	scotch.patch
+Patch12:	metis.patch
 
-Patch14:	scotch.patch
-Patch15:	metis.patch
-
-Patch16:	netgen4.5ForSalome.patch
+Patch13:	netgen4.5ForSalome.patch
 
 # https://bugzilla.gnome.org/show_bug.cgi?id=616344
-Patch17:	workaround-doxygen-1.6.3-bug.patch
+Patch14:	workaround-doxygen-1.6.3-bug.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -134,30 +127,28 @@ This package contains salome-platform samples.
 
 #-----------------------------------------------------------------------
 %prep
-%setup -q -n %{srcv} -D -a 4
+%setup -q -n %{srcv} -D -a 1
 
 %patch0 -p1 -b .lib_suff
 %patch1 -p1
 %patch2 -p1 -b .link
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
+%patch6 -p1
 %patch7 -p1
-%patch8 -p1
+%patch8 -p1 -b .include
 %patch9 -p1
-%patch10 -p1 -b .include
+%patch10 -p1
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
 
 echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6" &&
-%patch17 -p1
+%patch14 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
-cp %{SOURCE5} GEOM_SRC_%{version}/src/GEOM_SWIG
 
 #-----------------------------------------------------------------------
 # link with libraries in buildroot, not in _libdir
@@ -190,6 +181,8 @@ export GEOM_ROOT_DIR=%{buildroot}%{_prefix}
 export SMESH_ROOT_DIR=%{buildroot}%{_prefix}
 export RANDOMIZER_ROOT_DIR=%{buildroot}%{_prefix}
 export VISU_ROOT_DIR=%{buildroot}%{_prefix}
+export PYTHONPATH=%{buildroot}%{py_sitedir}/salome:%{buildroot}%{py_platsitedir}/salome:%{buildroot}%{_bindir}/salome
+export LD_LIBRARY_PATH=%{buildroot}%{_libdir}/salome:%{buildroot}%{py_platsitedir}/salome
 
 pushd KERNEL_SRC_%{version}
     sh ./build_configure
@@ -285,16 +278,6 @@ pushd LIGHT_SRC_%{version}
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
-    make
-    %makeinstall_std
-    %{ldflags_buildroot}
-popd
-
-# FIXME Avoid build failure - not paralell make safe
-mkdir -p %{buildroot}%{_datadir}/xdata/templates
-mkdir -p XDATA_SRC_%{version}/lib/python%{py_ver}/site-packages/xdata
-pushd XDATA_SRC_%{version}
-    %configure2_5x
     make
     %makeinstall_std
     %{ldflags_buildroot}
@@ -423,9 +406,9 @@ mkdir -p %{buildroot}%{_datadir}/%{name}/samples
 cp -far SAMPLES_SRC_%{version}/* %{buildroot}%{_datadir}/%{name}/samples
 cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
 
-install -m644 -D %{SOURCE2} %{buildroot}%{_miconsdir}/%{name}.png
-install -m644 -D %{SOURCE3} %{buildroot}%{_iconsdir}/%{name}.png
-install -m644 -D %{SOURCE3} %{buildroot}%{_datadir}/pixmaps/%{name}.png
+install -m644 -D %{SOURCE3} %{buildroot}%{_miconsdir}/%{name}.png
+install -m644 -D %{SOURCE4} %{buildroot}%{_iconsdir}/%{name}.png
+install -m644 -D %{SOURCE4} %{buildroot}%{_datadir}/pixmaps/%{name}.png
 mkdir -p %{buildroot}%{_datadir}/applications
 cat > %{buildroot}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
 [Desktop Entry]
