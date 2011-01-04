@@ -339,9 +339,6 @@ mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadi
 # apparently instaled by mistake (nodist, and in purebindir)
 rm -f %{buildroot}%{_bindir}/runTestMedCorba
 
-# something wrong in make install
-rm -f %{buildroot}%{py_puresitedir}/xdata/.dummy.py*
-
 # FIXME need to patch some code because just setting PYTHONPATH is not
 # enough to get it to find some python packages (from C++ code linked
 # to libpython)
@@ -395,7 +392,6 @@ chmod +x %{buildroot}%{_bindir}/killSalome
 %ifarch x86_64 ppc64
   pushd %{buildroot}%{py_puresitedir}
     mv -f %{name}/* %{buildroot}%{py_platsitedir}/%{name}
-    mv -f xdata %{buildroot}%{py_platsitedir}
     rmdir %{name}
   popd
 %endif
@@ -432,15 +428,11 @@ EOF
 %{_datadir}/idl/salome/*
 %dir %{py_platsitedir}/%{name}
 %{py_platsitedir}/%{name}/*
-%dir %{py_platsitedir}/xdata
-%{py_platsitedir}/xdata/*
 %dir %{_datadir}/%{name}
 %dir %{_datadir}/%{name}/resources
 %{_datadir}/%{name}/resources/*
 %dir %{_datadir}/%{name}/salome_adm
 %{_datadir}/%{name}/salome_adm/*
-%dir %{_datadir}/xdata
-%{_datadir}/xdata/*
 %dir %{_includedir}/%{name}
 %{_includedir}/%{name}/*
 %dir %{_libdir}/%{name}
@@ -449,8 +441,6 @@ EOF
 %{_docdir}/%{name}/*
 %dir %{_bindir}/%{name}
 %{_bindir}/%{name}/*
-%dir %{_docdir}/xdata-0.7.3
-%{_docdir}/xdata-0.7.3/*
 %{_miconsdir}/%{name}.png
 %{_iconsdir}/%{name}.png
 %{_datadir}/pixmaps/%{name}.png
