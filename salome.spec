@@ -95,11 +95,12 @@ Patch10:	runtime.patch
 
 Patch11:	scotch.patch
 Patch12:	metis.patch
+Patch13:	python.patch
 
-Patch13:	netgen4.5ForSalome.patch
+Patch14:	netgen4.5ForSalome.patch
 
 # https://bugzilla.gnome.org/show_bug.cgi?id=616344
-Patch14:	workaround-doxygen-1.6.3-bug.patch
+Patch15:	workaround-doxygen-1.6.3-bug.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -143,9 +144,10 @@ This package contains salome-platform samples.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6" &&
-%patch14 -p1
+%patch15 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
