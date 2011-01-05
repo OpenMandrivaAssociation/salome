@@ -327,7 +327,7 @@ perl -pi								\
 
 mkdir -p %{buildroot}%{_datadir}/idl
 if [ -d %{buildroot}%{_prefix}/idl ]; then
-    mv -f %{buildroot}%{_prefix}/idl %{buildroot}%{_datadir}
+    mv -f %{buildroot}%{_prefix}/idl/* %{buildroot}%{_datadir}/idl
 fi
 mkdir -p %{buildroot}%{_datadir}/%{name}
 mv -f %{buildroot}%{_bindir}/HXX2SALOME_Test %{buildroot}%{_datadir}/%{name}
