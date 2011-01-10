@@ -70,6 +70,7 @@ Requires:	libopencascade-devel
 Requires:	omninotify
 Requires:	omniorb
 Requires:	opencascade
+Requires:	openmpi
 Requires:	python-omniorb
 
 Patch0:		lib_location_suffix.patch
