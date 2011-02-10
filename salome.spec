@@ -62,7 +62,7 @@ BuildRequires:	tetex-dvips
 BuildRequires:	tetex-latex
 BuildRequires:	togl
 BuildRequires:	vtk-devel
-BuildRequires:	X11-devel
+BuildRequires:	libx11-devel
 BuildRequires:	python-devel
 
 Requires:	libopencascade
