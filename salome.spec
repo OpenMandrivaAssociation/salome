@@ -308,7 +308,7 @@ rm -rf %{buildroot}
 %install
 rm -rf %{buildroot}
 for module in KERNEL_SRC_%{version} GUI_SRC_%{version} MED GEOM SMESH_SRC_%{version} PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU LIGHT_SRC_%{version}; do
-    pushd module
+    pushd ${module}
     %makeinstall_std
     %{ldflags_buildroot}
     popd
