@@ -194,8 +194,6 @@ pushd KERNEL_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-openmpi=%{_prefix}
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
 popd
 
 pushd GUI_SRC_%{version}
@@ -208,8 +206,6 @@ pushd GUI_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
 popd
 
 for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO NETGENPLUGIN; do
@@ -231,8 +227,6 @@ for module in MED GEOM; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	make
-	%makeinstall_std
-	%{ldflags_buildroot}
     popd
 done
 
@@ -247,8 +241,6 @@ pushd SMESH_SRC_%{version}
 	--with-kernel=$KERNEL_ROOT_DIR					\
 	--with-gui=$GUI_ROOT_DIR
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
 popd
 
 for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
@@ -268,8 +260,6 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	make
-	%makeinstall_std
-	%{ldflags_buildroot}
     popd
 done
 
@@ -282,8 +272,6 @@ pushd LIGHT_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
 popd
 
 export KERNEL_CXXFLAGS=$KERNEL_ROOT_DIR/include/salome
@@ -309,17 +297,31 @@ for module in %{modules}; do
 	    --with-gui=$GUI_ROOT_DIR					\
 	    --with-netgen=%{_builddir}/src%{version}/netgen-4.5_SRC/install
 	make
-	%makeinstall_std
-	%{ldflags_buildroot}
     popd
 done
 
 #-----------------------------------------------------------------------
 %clean
-#rm -rf %{buildroot}
+rm -rf %{buildroot}
 
 #-----------------------------------------------------------------------
 %install
+rm -rf %{buildroot}
+for module in KERNEL_SRC_%{version} GUI_SRC_%{version} MED GEOM SMESH_SRC_%{version} PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU LIGHT_SRC_%{version}; do
+    pushd module
+    %makeinstall_std
+    %{ldflags_buildroot}
+    popd
+done
+
+for module in %{modules}; do
+    pushd ${module}_SRC_%{version}
+    %makeinstall_std
+    %{ldflags_buildroot}
+    popd
+done
+
+
 # link with libraries in _libdir, not in buildroot
 perl -pi								\
     -e 's|^(installed)=no|$1=yes|;'					\
