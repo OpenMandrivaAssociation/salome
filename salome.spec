@@ -7,7 +7,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.5
-Release:	%mkrel 3
+Release:	%mkrel 4
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -23,6 +23,7 @@ Source2:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.
 
 Source3:	salome.png
 Source4:	salome32.png
+Source5:	swig-preprocessed.tar.gz
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -58,8 +59,7 @@ BuildRequires:	qscintilla-qt4-devel
 BuildRequires:	scotch
 BuildRequires:	scotch-devel
 BuildRequires:	swig
-BuildRequires:	tetex-dvips
-BuildRequires:	tetex-latex
+BuildRequires:	texlive
 BuildRequires:	togl
 BuildRequires:	vtk-devel
 BuildRequires:	libx11-devel
@@ -153,11 +153,16 @@ echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.7" &&
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
 
+tar zxf %{SOURCE5}
+
 #-----------------------------------------------------------------------
+%build
+# nothing to see here
+
+#-----------------------------------------------------------------------
+%install
 # link with libraries in buildroot, not in _libdir
 %define ldflags_buildroot	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{buildroot}$1|g;' %{buildroot}%{_libdir}/salome/*la
-
-%build
 
 %ifarch x86_64 ppc64
     export CXXFLAGS="$CXXFLAGS -fPIC"
@@ -314,24 +319,11 @@ for module in %{modules}; do
     popd
 done
 
-#-----------------------------------------------------------------------
-%clean
-rm -rf %{buildroot}
-
-#-----------------------------------------------------------------------
-%install
-rm -rf %{buildroot}
-for module in KERNEL_SRC_%{version} GUI_SRC_%{version} MED GEOM SMESH_SRC_%{version} PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU LIGHT_SRC_%{version}; do
-    pushd ${module}
-    %makeinstall_std
-    popd
-done
-
-for module in %{modules}; do
-    pushd ${module}_SRC_%{version}
-    %makeinstall_std
-    popd
-done
+# link with libraries in _libdir, not in buildroot	 
+perl -pi								\
+    -e 's|^(installed)=no|$1=yes|;'					\
+    -e 's| %{buildroot}(%{_libdir}/salome/lib\w\.la)| $1|g;'		\
+    %{buildroot}%{_libdir}/salome/*la	 
 
 mkdir -p %{buildroot}%{_datadir}/idl
 if [ -d %{buildroot}%{_prefix}/idl ]; then
@@ -368,6 +360,7 @@ export YACS_ROOT_DIR=%{_prefix}
 export CASROOT=%{_datadir}/opencascade
 export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so.0.0.0
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
+export PYTHONPATH=%{py_platsitedir}/salome:%{_bindir}/salome:%{_libdir}/salome
 
 # Extra debug information
 export MESA_DEBUG=FP
