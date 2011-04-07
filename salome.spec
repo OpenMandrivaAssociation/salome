@@ -153,7 +153,7 @@ echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.7" &&
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
 
-tar zxf %{SOURCE5}
+tar zxfm %{SOURCE5}
 
 #-----------------------------------------------------------------------
 %build
