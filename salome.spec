@@ -313,7 +313,12 @@ for module in %{modules}; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR					\
 	    --with-netgen=%{_builddir}/src%{version}/netgen-4.5_SRC/install
+# ugly hack until swig is generates std::ptrdiff_t (or libstdc++ changed?)
+%if 0
 	make
+%else
+	make || (cd ..; tar zxfm %{SOURCE5} YACS_SRC_5.1.5; cd -; make)
+%endif
         %makeinstall_std
         %{ldflags_buildroot}
     popd
