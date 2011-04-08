@@ -147,8 +147,9 @@ This package contains salome-platform samples.
 %patch13 -p1
 %patch14 -p1
 
-echo `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6" &&
+if test `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6"; then
 %patch15 -p1
+fi
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
