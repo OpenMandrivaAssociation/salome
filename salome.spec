@@ -103,6 +103,8 @@ Patch14:	netgen4.5ForSalome.patch
 # https://bugzilla.gnome.org/show_bug.cgi?id=616344
 Patch15:	workaround-doxygen-1.6.3-bug.patch
 
+Patch16:	help-prefix-path.patch
+
 %description
 SALOME is an open-source software that provides a generic platform for
 Pre- and Post-Processing for numerical simulation. It is based on an open
@@ -150,6 +152,8 @@ This package contains salome-platform samples.
 if test `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6"; then
 %patch15 -p1
 fi
+
+%patch16 -p1
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -318,7 +322,10 @@ for module in %{modules}; do
 %if 0
 	make
 %else
-	make || (cd ..; tar zxfm %{SOURCE5} YACS_SRC_5.1.5; cd -; make)
+	for tries in 1 2 3 4 5; do
+	    if make; then break; fi
+	    (cd ..; tar zxfm %{SOURCE5} YACS_SRC_5.1.5)
+	done
 %endif
         %makeinstall_std
         %{ldflags_buildroot}
@@ -344,6 +351,19 @@ mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadi
 
 # apparently instaled by mistake (nodist, and in purebindir)
 rm -f %{buildroot}%{_bindir}/runTestMedCorba
+
+pushd %{buildroot}%{_docdir}
+    rm -fr salome/*
+    tar zxf %{SOURCE2}
+    for top in KERNEL GEOM GUI HELLO MED PYHELLO SMESH VISU YACS; do
+	for sub in doc%{version}/$top/*; do
+	    cp -far $sub salome
+	done
+    done
+    rm -fr doc%{version}
+    find salome -type f | xargs chmod 0644
+    find salome -type d | xargs chmod 0755
+popd
 
 # FIXME need to patch some code because just setting PYTHONPATH is not
 # enough to get it to find some python packages (from C++ code linked
@@ -372,7 +392,7 @@ export PYTHONPATH=%{py_platsitedir}/salome:%{_bindir}/salome:%{_libdir}/salome
 export MESA_DEBUG=FP
 export LIBGL_DEBUG=verbose
 
-# Force software rendering
+# Force indirect rendering
 export LIBGL_ALWAYS_INDIRECT=true
 
 cd %{py_platsitedir}/salome
