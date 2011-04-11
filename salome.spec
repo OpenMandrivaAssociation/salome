@@ -7,7 +7,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.5
-Release:	%mkrel 5
+Release:	%mkrel 6
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -104,6 +104,7 @@ Patch14:	netgen4.5ForSalome.patch
 Patch15:	workaround-doxygen-1.6.3-bug.patch
 
 Patch16:	help-prefix-path.patch
+Patch17:	python-console-in-qt4.4+.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
