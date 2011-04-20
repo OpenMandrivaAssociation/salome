@@ -7,7 +7,7 @@
 Name:		salome
 Group:		Sciences/Physics
 Version:	5.1.5
-Release:	%mkrel 6
+Release:	%mkrel 7
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
@@ -160,6 +160,8 @@ fi
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
 
 tar zxfm %{SOURCE5}
+
+%patch17 -p1
 
 #-----------------------------------------------------------------------
 %build
