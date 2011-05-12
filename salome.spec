@@ -105,6 +105,7 @@ Patch15:	workaround-doxygen-1.6.3-bug.patch
 
 Patch16:	help-prefix-path.patch
 Patch17:	python-console-in-qt4.4+.patch
+Patch18:	swig-2.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -162,6 +163,7 @@ cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC
 tar zxfm %{SOURCE5}
 
 %patch17 -p1
+%patch18 -p0
 
 #-----------------------------------------------------------------------
 %build
