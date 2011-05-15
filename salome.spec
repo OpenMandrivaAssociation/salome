@@ -340,8 +340,8 @@ done
 # link with libraries in _libdir, not in buildroot	 
 perl -pi								\
     -e 's|^(installed)=no|$1=yes|;'					\
-    -e 's| %{buildroot}(%{_libdir}/salome/lib\w\.la)| $1|g;'		\
-    %{buildroot}%{_libdir}/salome/*la	 
+    -e 's|%{buildroot}||g;'						\
+    %{buildroot}%{_libdir}/salome/*.la	 
 
 mkdir -p %{buildroot}%{_datadir}/idl
 if [ -d %{buildroot}%{_prefix}/idl ]; then
