@@ -469,7 +469,7 @@ pushd %{buildroot}%{_docdir}
 	done
     popd
     rm -fr DOCUMENTATION_SRC_%{version}
-    find salome -type f | xargs chmod 0644
+    find salome -type f -exec chmod 0644 {} \;
     find salome -type d | xargs chmod 0755
 popd
 
