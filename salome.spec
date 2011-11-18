@@ -1,29 +1,35 @@
-%define		srcv		src%{version}
+%define		srcv			src%{version}
 
 # BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
-#	see BUILD/src5.1.5/BLSURFPLUGIN_SRC_5.1.5/README for details
-%define		modules		GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS MULTIPR HexoticPLUGIN PYHELLO NETGENPLUGIN
+#	see BUILD/src6.3.1/BLSURFPLUGIN_SRC_6.3.1/README for details
+%define		modules			GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO NETGENPLUGIN
+%define		extra_modules		GHS3DPLUGIN HEXABLOCK HEXABLOCKPLUGIN HOMARD JOBMANAGER
+
+%define		build_root		%{_builddir}/%{srcv}/build_root
+%define		salome_makeinstall_std	make DESTDIR=%{build_root} install
 
 Name:		salome
 Group:		Sciences/Physics
-Version:	5.1.5
-Release:	%mkrel 8
+Version:	6.3.1
+Release:	%mkrel 1
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
 URL:		http://www.salome-platform.org
-Source0:	http://files.opencascade.com/Salome/Salome%{version}/src%{version}.tar.gz
-# http://www.salome-platform.org/forum/forum_9/thread_1416 	 
+# http://www.salome-platform.org/downloads/salome-v6.3.1/DownloadDistr?platform=Sources&version=6.3.1
+Source0:	src%{version}.tar.gz
+
+# http://www.salome-platform.org/forum/forum_9/thread_1416
 Source1:	netgen-4.5_SRC.tar.gz
 
 # Not really required, kept in case changing to no longer regenerate
 # documentation, as done in some packages to save build system time,
 # also, the normal build may not rebuild all documentation, or may
 # have some issues like the doxygen double underscore issue
-Source2:	http://files.opencascade.com/Salome/Salome%{version}/doc%{version}.tar.gz
+# http://www.salome-platform.org/downloads/salome-v6.3.1/DownloadDistr?platform=Documentation&version=6.3.1
+Source2:	doc%{version}.tar.gz
 
 Source3:	salome.png
 Source4:	salome32.png
-Source5:	swig-preprocessed.tar.gz
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -37,7 +43,7 @@ BuildRequires:	graphviz
 BuildRequires:	graphviz-devel
 BuildRequires:	hdf5
 BuildRequires:	hdf5-devel
-BuildRequires:	libopencascade-devel
+BuildRequires:	opencascade-devel
 BuildRequires:	libqwt-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	med-devel
@@ -77,35 +83,29 @@ Patch0:		lib_location_suffix.patch
 Patch1:		opencascade.patch
 Patch2:		underlink.patch
 Patch3:		format.patch
-Patch4:		constructor-build.patch
-Patch5:		destdir.patch
-Patch6:		undefined.patch
+Patch4:		destdir.patch
+Patch5:		undefined.patch
 
 # Weird linking problem; this patch just prints the link failure message and
 # calls abort if the code would ever follow the path with the undefined symbol...
-Patch7:		FIXME.patch
+Patch6:		FIXME.patch
 
 #  There is also a include order change in underlink.patch
 #  The reason is YACS code using Node.hxx from INTERP_KERNEL, and not
 # YACS/src/engine due to adding -I$(KERNEL_ROOT_DIR)/include/salome before
 # "local" includes
-Patch8:		includeorder.patch
+Patch7:		includeorder.patch
 
-Patch9:		prefix.patch
-Patch10:	runtime.patch
+Patch8:		prefix.patch
+Patch9:		runtime.patch
+Patch10:	metis.patch
+Patch11:	netgen4.5ForSalome.patch
+Patch12:	help-prefix-path.patch
+Patch13:	python-console-in-qt4.4+.patch
 
-Patch11:	scotch.patch
-Patch12:	metis.patch
-Patch13:	python.patch
-
-Patch14:	netgen4.5ForSalome.patch
-
-# https://bugzilla.gnome.org/show_bug.cgi?id=616344
-Patch15:	workaround-doxygen-1.6.3-bug.patch
-
-Patch16:	help-prefix-path.patch
-Patch17:	python-console-in-qt4.4+.patch
-Patch18:	swig-2.patch
+# Hack, not supported by newer qt4
+# http://www.salome-platform.org/forum/forum_9/508970876
+Patch14:	qobject_static_cast.patch
 
 %description
 SALOME is an open-source software that provides a generic platform for
@@ -133,7 +133,8 @@ This package contains salome-platform samples.
 
 #-----------------------------------------------------------------------
 %prep
-%setup -q -n %{srcv} -D -a 1
+rm -fr %{srcv}
+%setup -q -c -n %{srcv} -D -a 1
 
 %patch0 -p1 -b .lib_suff
 %patch1 -p1
@@ -142,8 +143,8 @@ This package contains salome-platform samples.
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
-%patch7 -p1
-%patch8 -p1 -b .include
+%patch7 -p1 -b .include
+%patch8 -p1
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
@@ -151,56 +152,44 @@ This package contains salome-platform samples.
 %patch13 -p1
 %patch14 -p1
 
-if test `rpm -q --qf "%%{version}" doxygen` | grep -q "1.6"; then
-%patch15 -p1
-fi
-
-%patch16 -p1
-
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
 
-tar zxfm %{SOURCE5}
-
-%patch17 -p1
-%patch18 -p0
-
 #-----------------------------------------------------------------------
 %build
-# nothing to see here
+# link with libraries in build_root, not in _libdir
+%define ldflags_build_root	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{build_root}$1|g;' %{build_root}%{_libdir}/salome/*la
 
-#-----------------------------------------------------------------------
-%install
-# link with libraries in buildroot, not in _libdir
-%define ldflags_buildroot	perl -pi -e 's|^(installed)=yes|$1=no|;' -e 's| (%{_libdir}/salome/lib\\w+\\.la)| %{buildroot}$1|g;' %{buildroot}%{_libdir}/salome/*la
-
-%ifarch x86_64 ppc64
-    export CXXFLAGS="$CXXFLAGS -fPIC"
-%endif
+mkdir -p %{build_root}
 
 export CASROOT=%{_datadir}/opencascade
 
 pushd netgen-4.5_SRC
+  %ifarch x86_64 ppc64
+    export CXXFLAGS="$CXXFLAGS -DPIC -fPIC"
+  %endif
     sh makeForSalome.sh
     pushd ngtcltk
-	g++ $CXXFLAGS -DOPENGL=1 -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
-%ifarch x86_64 ppc64
+        g++ $CXXFLAGS -DOPENGL=1 -DOCCGEOMETRY=1 -DSOCKETS=1 -DHAVE_CONFIG_H=1 -o ngpkg.o -c ngpkg.cpp -I ../libsrc/include -I${CASROOT}/inc
+  %ifarch x86_64 ppc64
 	cp -f ngpkg.o ../install/lib/LINUX64
-%else
+  %else
 	cp -f ngpkg.o ../install/lib/LINUX
-%endif
+  %endif
      popd
 popd
 
-export KERNEL_ROOT_DIR=%{buildroot}%{_prefix}
-export GUI_ROOT_DIR=%{buildroot}%{_prefix}
-export MED_ROOT_DIR=%{buildroot}%{_prefix}
-export GEOM_ROOT_DIR=%{buildroot}%{_prefix}
-export SMESH_ROOT_DIR=%{buildroot}%{_prefix}
-export RANDOMIZER_ROOT_DIR=%{buildroot}%{_prefix}
-export VISU_ROOT_DIR=%{buildroot}%{_prefix}
-export PYTHONPATH=%{buildroot}%{py_sitedir}/salome:%{buildroot}%{py_platsitedir}/salome:%{buildroot}%{_bindir}/salome
-export LD_LIBRARY_PATH=%{buildroot}%{_libdir}/salome:%{buildroot}%{py_platsitedir}/salome
+export KERNEL_ROOT_DIR=%{build_root}%{_prefix}
+export GUI_ROOT_DIR=%{build_root}%{_prefix}
+export MED_ROOT_DIR=%{build_root}%{_prefix}
+export GEOM_ROOT_DIR=%{build_root}%{_prefix}
+export SMESH_ROOT_DIR=%{build_root}%{_prefix}
+export RANDOMIZER_ROOT_DIR=%{build_root}%{_prefix}
+export VISU_ROOT_DIR=%{build_root}%{_prefix}
+export ATOMGEN_ROOT_DIR=%{build_root}%{_prefix}
+export HEXABLOCK_ROOT_DIR=%{build_root}%{_prefix}
+export PYTHONPATH=%{build_root}%{py_sitedir}/salome:%{build_root}%{py_platsitedir}/salome:%{build_root}%{_bindir}/salome
+export LD_LIBRARY_PATH=%{build_root}%{_libdir}/salome:%{build_root}%{py_platsitedir}/salome
 
 pushd KERNEL_SRC_%{version}
     sh ./build_configure
@@ -209,22 +198,22 @@ pushd KERNEL_SRC_%{version}
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-openmpi=%{_prefix}
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
+    %salome_makeinstall_std
+    %{ldflags_build_root}
 popd
 
 pushd GUI_SRC_%{version}
     sh ./build_configure
     perl -pi								\
-	-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+	-e 's@ (SALOME\w+\.idl)@ %{build_root}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
     %configure2_5x							\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
 	--with-kernel=$KERNEL_ROOT_DIR
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
+    %salome_makeinstall_std
+    %{ldflags_build_root}
 popd
 
 for module in RANDOMIZER VISU LIGHT SIERPINSKY PYHELLO NETGENPLUGIN; do
@@ -235,7 +224,7 @@ for module in MED GEOM; do
     pushd ${module}_SRC_%{version}
 	sh ./build_configure
 	perl -pi							\
-	    -e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+	    -e 's@ (SALOME\w+\.idl)@ %{build_root}%{_prefix}/idl/salome/$1@g;' \
 	    idl/.depidl
 	%configure2_5x							\
 	    --with-python-site=%{python_sitearch}			\
@@ -246,24 +235,25 @@ for module in MED GEOM; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	make
-        %makeinstall_std
-        %{ldflags_buildroot}
+        %salome_makeinstall_std
+        %{ldflags_build_root}
     popd
 done
 
 pushd SMESH_SRC_%{version}
     sh ./build_configure
     perl -pi								\
-	-e 's@ ((SALOME\w|GEOM_Gen)\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+	-e 's@ ((SALOME\w|GEOM_Gen)\.idl)@ %{build_root}%{_prefix}/idl/salome/$1@g;' \
 	idl/.depidl
     %configure2_5x							\
 	--with-python-site=%{python_sitearch}				\
 	--with-python-site-exec=%{python_sitearch}			\
+	--with-med2=%{_prefix}						\
 	--with-kernel=$KERNEL_ROOT_DIR					\
 	--with-gui=$GUI_ROOT_DIR
     make
-    %makeinstall_std
-    %{ldflags_buildroot}
+    %salome_makeinstall_std
+    %{ldflags_build_root}
 popd
 
 for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
@@ -271,7 +261,7 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 	sh ./build_configure
 	if [ -f idl/.depidl ]; then					\
 	    perl -pi							\
-		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+		-e 's@ (SALOME\w+\.idl)@ %{build_root}%{_prefix}/idl/salome/$1@g;' \
 		idl/.depidl
 	fi
 	%configure2_5x							\
@@ -283,33 +273,47 @@ for module in PYLIGHT CALCULATOR HXX2SALOME COMPONENT RANDOMIZER VISU; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR
 	make
-        %makeinstall_std
-        %{ldflags_buildroot}
+        %salome_makeinstall_std
+        %{ldflags_build_root}
     popd
 done
 
 # fails if --with-gui option isn't either "yes" or "no", but properly
 # "detects" it based on other shell variables
-pushd LIGHT_SRC_%{version}
-    sh ./build_configure
-    %configure2_5x							\
-	--with-python-site=%{python_sitearch}				\
-	--with-python-site-exec=%{python_sitearch}			\
-	--with-kernel=$KERNEL_ROOT_DIR
-    make
-    %makeinstall_std
-    %{ldflags_buildroot}
+for module in LIGHT ATOMGEN ATOMIC ATOMSOLV; do
+    pushd ${module}_SRC_%{version}
+	sh ./build_configure
+	%configure2_5x							\
+	    --with-python-site=%{python_sitearch}			\
+	    --with-python-site-exec=%{python_sitearch}			\
+	    --with-kernel=$KERNEL_ROOT_DIR
+	make
+	%salome_makeinstall_std
+	%{ldflags_build_root}
+    popd
+done
+
+# FIXME broken cmake config files in paraview-devel
+# and the one included has %#{buildroot} on it
+%if 0
+pushd PARAVIS_SRC_%{version}
+    %cmake
+    %make
+    %salome_makeinstall_std
+    %{ldflags_build_root}
 popd
+%endif
 
 export KERNEL_CXXFLAGS=$KERNEL_ROOT_DIR/include/salome
-for module in %{modules}; do
+for module in %{modules} %{extra_modules}; do
     pushd ${module}_SRC_%{version}
 	if [ -f ./build_configure ]; then
 	    sh ./build_configure
 	fi
 	if [ -f idl/.depidl ]; then
 	    perl -pi							\
-		-e 's@ (SALOME\w+\.idl)@ %{buildroot}%{_prefix}/idl/salome/$1@g;' \
+		-e 's@ (SALOME\w+\.idl)@ %{build_root}%{_prefix}/idl/salome/$1@g;' \
+		-e 's@ (SMESH\w+\.idl)@ %{build_root}%{_prefix}/idl/salome/$1@g;'  \
 		idl/.depidl
 	fi
 	%configure2_5x							\
@@ -323,43 +327,40 @@ for module in %{modules}; do
 	    --with-kernel=$KERNEL_ROOT_DIR				\
 	    --with-gui=$GUI_ROOT_DIR					\
 	    --with-netgen=%{_builddir}/src%{version}/netgen-4.5_SRC/install
-# ugly hack until swig generates std::ptrdiff_t (or libstdc++ changed?)
-%if 0
 	make
-%else
-	for tries in 1 2 3 4 5; do
-	    if make; then break; fi
-	    (cd ..; tar zxfm %{SOURCE5} YACS_SRC_5.1.5)
-	done
-%endif
-        %makeinstall_std
-        %{ldflags_buildroot}
+        %salome_makeinstall_std
+        %{ldflags_build_root}
     popd
 done
 
-# link with libraries in _libdir, not in buildroot	 
+# FIXME install as is TUTORIAL and in samples subpackage?
+
+#-----------------------------------------------------------------------
+%install
+
+# link with libraries in _libdir, not in build_root	 
 perl -pi								\
     -e 's|^(installed)=no|$1=yes|;'					\
-    -e 's|%{buildroot}||g;'						\
-    %{buildroot}%{_libdir}/salome/*.la	 
+    -e 's|%{build_root}||g;'						\
+    %{build_root}%{_libdir}/salome/*.la	 
 
-mkdir -p %{buildroot}%{_datadir}/idl
-if [ -d %{buildroot}%{_prefix}/idl ]; then
-    mv -f %{buildroot}%{_prefix}/idl/* %{buildroot}%{_datadir}/idl
+mkdir -p %{build_root}%{_datadir}/idl
+if [ -d %{build_root}%{_prefix}/idl ]; then
+    mv -f %{build_root}%{_prefix}/idl/* %{build_root}%{_datadir}/idl
 fi
-mkdir -p %{buildroot}%{_datadir}/%{name}
-mv -f %{buildroot}%{_bindir}/HXX2SALOME_Test %{buildroot}%{_datadir}/%{name}
-mv -f %{buildroot}%{_prefix}/Tests %{buildroot}%{_datadir}/%{name}
-mv -f %{buildroot}%{_prefix}/salome_adm %{buildroot}%{_datadir}/%{name}
-mv -f %{buildroot}%{_prefix}/adm_local/cmake_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/cmake_files
-mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/unix/config_files
+mkdir -p %{build_root}%{_datadir}/%{name}
+mv -f %{build_root}%{_bindir}/HXX2SALOME_Test %{build_root}%{_datadir}/%{name}
+mv -f %{build_root}%{_prefix}/Tests %{build_root}%{_datadir}/%{name}
+mv -f %{build_root}%{_prefix}/salome_adm %{build_root}%{_datadir}/%{name}
+mv -f %{build_root}%{_prefix}/adm_local/cmake_files/* %{build_root}%{_datadir}/%{name}/salome_adm/cmake_files
+mv -f %{build_root}%{_prefix}/adm_local/unix/config_files/* %{build_root}%{_datadir}/%{name}/salome_adm/unix/config_files
 
 # apparently instaled by mistake (nodist, and in purebindir)
-rm -f %{buildroot}%{_bindir}/runTestMedCorba
+rm -f %{build_root}%{_bindir}/runTestMedCorba
 
 # doxygen 1.7.3 does not replicate good enough what was generated
 # by doxygen 1.4*, so use the prebuilt files
-pushd %{buildroot}%{_docdir}
+pushd %{build_root}%{_docdir}
     rm -fr salome/*
     tar zxf %{SOURCE2}
     for top in KERNEL GEOM GUI HELLO MED PYHELLO SMESH VISU YACS; do
@@ -376,7 +377,7 @@ popd
 # enough to get it to find some python packages (from C++ code linked
 # to libpython)
 #-----------------------------------------------------------------------
-cat > %{buildroot}%{_bindir}/runSalome << EOF
+cat > %{build_root}%{_bindir}/runSalome << EOF
 #!/bin/sh
 
 export KERNEL_ROOT_DIR=%{_prefix}
@@ -405,11 +406,11 @@ export LIBGL_ALWAYS_INDIRECT=true
 cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
-chmod +x %{buildroot}%{_bindir}/runSalome
+chmod +x %{build_root}%{_bindir}/runSalome
 #-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
-cat > %{buildroot}%{_bindir}/killSalome << EOF
+cat > %{build_root}%{_bindir}/killSalome << EOF
 #!/bin/sh
 
 PIDS=\`ps x |
@@ -418,31 +419,31 @@ grep -v egrep |
 awk '{ print \$1; }'\`
 [ -z "\$PIDS" ] || kill \$PIDS
 EOF
-chmod +x %{buildroot}%{_bindir}/killSalome
+chmod +x %{build_root}%{_bindir}/killSalome
 #-----------------------------------------------------------------------
 
 # some files in %py_puresitedir uses interfaces to load dynamic modules
 # but want the files in the same directory, not %py_platsitedir
 %ifarch x86_64 ppc64
-  pushd %{buildroot}%{py_puresitedir}
-    mv -f %{name}/* %{buildroot}%{py_platsitedir}/%{name}
+  pushd %{build_root}%{py_puresitedir}
+    mv -f %{name}/* %{build_root}%{py_platsitedir}/%{name}
     rmdir %{name}
   popd
 %endif
 
-rm -f %{buildroot}%{py_platsitedir}/%{name}/*.a
-mv -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.* %{buildroot}%{py_platsitedir}/%{name}
-mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_platsitedir}/%{name}
+rm -f %{build_root}%{py_platsitedir}/%{name}/*.a
+mv -f %{build_root}%{_libdir}/%{name}/_libSALOME_Swig.* %{build_root}%{py_platsitedir}/%{name}
+mv -f %{build_root}%{_bindir}/%{name}/libSALOME_Swig.py %{build_root}%{py_platsitedir}/%{name}
 
-mkdir -p %{buildroot}%{_datadir}/%{name}/samples
-cp -far SAMPLES_SRC_%{version}/* %{buildroot}%{_datadir}/%{name}/samples
-cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
+mkdir -p %{build_root}%{_datadir}/%{name}/samples
+cp -far SAMPLES_SRC_%{version}/* %{build_root}%{_datadir}/%{name}/samples
+cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{build_root}%{_docdir}/%{name}
 
-install -m644 -D %{SOURCE3} %{buildroot}%{_miconsdir}/%{name}.png
-install -m644 -D %{SOURCE4} %{buildroot}%{_iconsdir}/%{name}.png
-install -m644 -D %{SOURCE4} %{buildroot}%{_datadir}/pixmaps/%{name}.png
-mkdir -p %{buildroot}%{_datadir}/applications
-cat > %{buildroot}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
+install -m644 -D %{SOURCE3} %{build_root}%{_miconsdir}/%{name}.png
+install -m644 -D %{SOURCE4} %{build_root}%{_iconsdir}/%{name}.png
+install -m644 -D %{SOURCE4} %{build_root}%{_datadir}/pixmaps/%{name}.png
+mkdir -p %{build_root}%{_datadir}/applications
+cat > %{build_root}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
 [Desktop Entry]
 Name=Salome
 Comment=Pre- and Post-Processing for numerical simulation
@@ -452,6 +453,11 @@ Terminal=false
 Type=Application
 Categories=Science;Physics;
 EOF
+
+## This must (should?) be the last commands to update buildroot from
+## installed files in build_root and work with any rpm version
+rm -fr %{buildroot}/*
+cp -fpar %{build_root}/* %{buildroot}
 
 #-----------------------------------------------------------------------
 %files
