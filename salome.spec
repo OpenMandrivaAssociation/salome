@@ -71,8 +71,6 @@ BuildRequires:	vtk-devel
 BuildRequires:	libx11-devel
 BuildRequires:	python-devel
 
-Requires:	libopencascade
-Requires:	libopencascade-devel
 Requires:	omninotify
 Requires:	omniorb
 Requires:	opencascade
@@ -338,31 +336,49 @@ done
 #-----------------------------------------------------------------------
 %install
 
+# This should be the last commands to update buildroot from
+# installed files in build_root and work with any rpm version
+rm -fr %{buildroot}/*
+cp -fpar %{build_root}/* %{buildroot}
+
+%ifarch x86_64 ppc64
+    mv -f %{buildroot}%{_prefix}/lib/salome/* %{buildroot}%{_libdir}/salome
+    rm -fr %{buildroot}%{_prefix}/lib/salome
+    perl -pi								\
+	-e 's|%{_prefix}/lib|%{_libdir}|g;'				\
+    %{buildroot}%{_libdir}/salome/*.la
+%endif
+
 # link with libraries in _libdir, not in build_root	 
 perl -pi								\
     -e 's|^(installed)=no|$1=yes|;'					\
-    -e 's|%{build_root}||g;'						\
-    %{build_root}%{_libdir}/salome/*.la	 
+    -e 's|%{buildroot}||g;'						\
+    %{buildroot}%{_libdir}/salome/*.la
 
-mkdir -p %{build_root}%{_datadir}/idl
-if [ -d %{build_root}%{_prefix}/idl ]; then
-    mv -f %{build_root}%{_prefix}/idl/* %{build_root}%{_datadir}/idl
-fi
-mkdir -p %{build_root}%{_datadir}/%{name}
-mv -f %{build_root}%{_bindir}/HXX2SALOME_Test %{build_root}%{_datadir}/%{name}
-mv -f %{build_root}%{_prefix}/Tests %{build_root}%{_datadir}/%{name}
-mv -f %{build_root}%{_prefix}/salome_adm %{build_root}%{_datadir}/%{name}
-mv -f %{build_root}%{_prefix}/adm_local/cmake_files/* %{build_root}%{_datadir}/%{name}/salome_adm/cmake_files
-mv -f %{build_root}%{_prefix}/adm_local/unix/config_files/* %{build_root}%{_datadir}/%{name}/salome_adm/unix/config_files
+mkdir -p %{buildroot}%{_datadir}/idl
+mv -f %{buildroot}%{_prefix}/idl/* %{buildroot}%{_datadir}/idl
+rmdir %{buildroot}%{_prefix}/idl
+
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_bindir}/HXX2SALOME_Test %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_prefix}/Tests %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_prefix}/salome_adm %{buildroot}%{_datadir}/%{name}
+mv -f %{buildroot}%{_prefix}/adm_local/cmake_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/cmake_files
+mv -f %{buildroot}%{_prefix}/adm_local/unix/config_files/* %{buildroot}%{_datadir}/%{name}/salome_adm/unix/config_files
+rm -fr %{buildroot}%{_prefix}/adm_local
 
 # apparently instaled by mistake (nodist, and in purebindir)
-rm -f %{build_root}%{_bindir}/runTestMedCorba
+rm -f %{buildroot}%{_bindir}/runTestMedCorba
+
+perl -pi -e 's|%{_bindir}$|%{_bindir}/salome|;' %{buildroot}%{_bindir}/start_jobmanager.sh
+mv -f %{buildroot}%{_bindir}/*jobmanager* %{buildroot}%{_bindir}/salome
+mv %{buildroot}%{_datadir}/idl/*.idl %{buildroot}%{_datadir}/idl/salome
 
 # FIXME need to patch some code because just setting PYTHONPATH is not
 # enough to get it to find some python packages (from C++ code linked
 # to libpython)
 #-----------------------------------------------------------------------
-cat > %{build_root}%{_bindir}/runSalome << EOF
+cat > %{buildroot}%{_bindir}/runSalome << EOF
 #!/bin/sh
 
 export KERNEL_ROOT_DIR=%{_prefix}
@@ -391,11 +407,11 @@ export LIBGL_ALWAYS_INDIRECT=true
 cd %{py_platsitedir}/salome
 %{_bindir}/%{name}/runSalome "\$@"
 EOF
-chmod +x %{build_root}%{_bindir}/runSalome
+chmod +x %{buildroot}%{_bindir}/runSalome
 #-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
-cat > %{build_root}%{_bindir}/killSalome << EOF
+cat > %{buildroot}%{_bindir}/killSalome << EOF
 #!/bin/sh
 
 PIDS=\`ps x |
@@ -404,35 +420,35 @@ grep -v egrep |
 awk '{ print \$1; }'\`
 [ -z "\$PIDS" ] || kill \$PIDS
 EOF
-chmod +x %{build_root}%{_bindir}/killSalome
+chmod +x %{buildroot}%{_bindir}/killSalome
 #-----------------------------------------------------------------------
 
 # some files in %py_puresitedir uses interfaces to load dynamic modules
 # but want the files in the same directory, not %py_platsitedir
 %ifarch x86_64 ppc64
-  pushd %{build_root}%{py_puresitedir}
+  pushd %{buildroot}%{py_puresitedir}
     if [ -d %{name} ]; then
-	mv -f %{name}/* %{build_root}%{py_platsitedir}/%{name}
+	mv -f %{name}/* %{buildroot}%{py_platsitedir}/%{name}
 	rmdir %{name}
     fi
   popd
 %endif
 
-rm -f %{build_root}%{py_platsitedir}/%{name}/*.a
-if [ -f %{build_root}%{_libdir}/%{name}/_libSALOME_Swig.so ]; then
-    mv -f %{build_root}%{_libdir}/%{name}/_libSALOME_Swig.* %{build_root}%{py_platsitedir}/%{name}
-    mv -f %{build_root}%{_bindir}/%{name}/libSALOME_Swig.py %{build_root}%{py_platsitedir}/%{name}
+rm -f %{buildroot}%{py_platsitedir}/%{name}/*.a
+if [ -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.so ]; then
+    mv -f %{buildroot}%{_libdir}/%{name}/_libSALOME_Swig.* %{buildroot}%{py_platsitedir}/%{name}
+    mv -f %{buildroot}%{_bindir}/%{name}/libSALOME_Swig.py %{buildroot}%{py_platsitedir}/%{name}
 fi
 
-mkdir -p %{build_root}%{_datadir}/%{name}/samples
-cp -far SAMPLES_SRC_%{version}/* %{build_root}%{_datadir}/%{name}/samples
-cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{build_root}%{_docdir}/%{name}
+mkdir -p %{buildroot}%{_datadir}/%{name}/samples
+cp -far SAMPLES_SRC_%{version}/* %{buildroot}%{_datadir}/%{name}/samples
+cp -fa HXX2SALOMEDOC_SRC_%{version}/*  %{buildroot}%{_docdir}/%{name}
 
-install -m644 -D %{SOURCE3} %{build_root}%{_miconsdir}/%{name}.png
-install -m644 -D %{SOURCE4} %{build_root}%{_iconsdir}/%{name}.png
-install -m644 -D %{SOURCE4} %{build_root}%{_datadir}/pixmaps/%{name}.png
-mkdir -p %{build_root}%{_datadir}/applications
-cat > %{build_root}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
+install -m644 -D %{SOURCE3} %{buildroot}%{_miconsdir}/%{name}.png
+install -m644 -D %{SOURCE4} %{buildroot}%{_iconsdir}/%{name}.png
+install -m644 -D %{SOURCE4} %{buildroot}%{_datadir}/pixmaps/%{name}.png
+mkdir -p %{buildroot}%{_datadir}/applications
+cat > %{buildroot}%{_datadir}/applications/mandriva-%{name}.desktop << EOF
 [Desktop Entry]
 Name=Salome
 Comment=Pre- and Post-Processing for numerical simulation
@@ -443,23 +459,13 @@ Type=Application
 Categories=Science;Physics;
 EOF
 
-## This should be the last commands to update buildroot from
-## installed files in build_root and work with any rpm version
-rm -fr %{buildroot}/*
-cp -fpar %{build_root}/* %{buildroot}
-
 # doxygen 1.7.3 does not replicate good enough what was generated
 # by doxygen 1.4*, so use the prebuilt files
-# (do not copy 720M+ around...)
 pushd %{buildroot}%{_docdir}
-    if [ ! -D DOCUMENTATION_SRC_%{version} ]; then
-	tar zxf %{SOURCE2}
-    fi
+    tar zxf %{SOURCE2}
     pushd DOCUMENTATION_SRC_%{version}
 	for top in *; do
-	    if [ ! -d ../salome/$top ]; then
-		cp -far $top/* ../salome
-	    fi
+	    cp -far $top/* ../salome
 	done
     popd
     rm -fr DOCUMENTATION_SRC_%{version}
