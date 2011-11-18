@@ -358,21 +358,6 @@ mv -f %{build_root}%{_prefix}/adm_local/unix/config_files/* %{build_root}%{_data
 # apparently instaled by mistake (nodist, and in purebindir)
 rm -f %{build_root}%{_bindir}/runTestMedCorba
 
-# doxygen 1.7.3 does not replicate good enough what was generated
-# by doxygen 1.4*, so use the prebuilt files
-pushd %{build_root}%{_docdir}
-    rm -fr salome/*
-    tar zxf %{SOURCE2}
-    for top in KERNEL GEOM GUI HELLO MED PYHELLO SMESH VISU YACS; do
-	for sub in doc%{version}/$top/*; do
-	    cp -far $sub salome
-	done
-    done
-    rm -fr doc%{version}
-    find salome -type f | xargs chmod 0644
-    find salome -type d | xargs chmod 0755
-popd
-
 # FIXME need to patch some code because just setting PYTHONPATH is not
 # enough to get it to find some python packages (from C++ code linked
 # to libpython)
@@ -392,7 +377,7 @@ export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
 export CASROOT=%{_datadir}/opencascade
-export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so.0.0.0
+export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so.1.0.0
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
 export PYTHONPATH=%{py_platsitedir}/salome:%{_bindir}/salome:%{_libdir}/salome
 
@@ -426,14 +411,18 @@ chmod +x %{build_root}%{_bindir}/killSalome
 # but want the files in the same directory, not %py_platsitedir
 %ifarch x86_64 ppc64
   pushd %{build_root}%{py_puresitedir}
-    mv -f %{name}/* %{build_root}%{py_platsitedir}/%{name}
-    rmdir %{name}
+    if [ -d %{name} ]; then
+	mv -f %{name}/* %{build_root}%{py_platsitedir}/%{name}
+	rmdir %{name}
+    fi
   popd
 %endif
 
 rm -f %{build_root}%{py_platsitedir}/%{name}/*.a
-mv -f %{build_root}%{_libdir}/%{name}/_libSALOME_Swig.* %{build_root}%{py_platsitedir}/%{name}
-mv -f %{build_root}%{_bindir}/%{name}/libSALOME_Swig.py %{build_root}%{py_platsitedir}/%{name}
+if [ -f %{build_root}%{_libdir}/%{name}/_libSALOME_Swig.so ]; then
+    mv -f %{build_root}%{_libdir}/%{name}/_libSALOME_Swig.* %{build_root}%{py_platsitedir}/%{name}
+    mv -f %{build_root}%{_bindir}/%{name}/libSALOME_Swig.py %{build_root}%{py_platsitedir}/%{name}
+fi
 
 mkdir -p %{build_root}%{_datadir}/%{name}/samples
 cp -far SAMPLES_SRC_%{version}/* %{build_root}%{_datadir}/%{name}/samples
@@ -454,31 +443,43 @@ Type=Application
 Categories=Science;Physics;
 EOF
 
-## This must (should?) be the last commands to update buildroot from
+## This should be the last commands to update buildroot from
 ## installed files in build_root and work with any rpm version
 rm -fr %{buildroot}/*
 cp -fpar %{build_root}/* %{buildroot}
+
+# doxygen 1.7.3 does not replicate good enough what was generated
+# by doxygen 1.4*, so use the prebuilt files
+# (do not copy 720M+ around...)
+pushd %{buildroot}%{_docdir}
+    if [ ! -D DOCUMENTATION_SRC_%{version} ]; then
+	tar zxf %{SOURCE2}
+    fi
+    pushd DOCUMENTATION_SRC_%{version}
+	for top in *; do
+	    if [ ! -d ../salome/$top ]; then
+		cp -far $top/* ../salome
+	    fi
+	done
+    popd
+    rm -fr DOCUMENTATION_SRC_%{version}
+    find salome -type f | xargs chmod 0644
+    find salome -type d | xargs chmod 0755
+popd
 
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
 %{_bindir}/runSalome
 %{_bindir}/killSalome
-%dir %{_datadir}/idl/salome
-%{_datadir}/idl/salome/*
-%dir %{py_platsitedir}/%{name}
-%{py_platsitedir}/%{name}/*
+%{_datadir}/idl/salome
+%{py_platsitedir}/%{name}
 %dir %{_datadir}/%{name}
-%dir %{_datadir}/%{name}/resources
-%{_datadir}/%{name}/resources/*
-%dir %{_datadir}/%{name}/salome_adm
-%{_datadir}/%{name}/salome_adm/*
-%dir %{_includedir}/%{name}
-%{_includedir}/%{name}/*
-%dir %{_libdir}/%{name}
-%{_libdir}/%{name}/*
-%dir %{_docdir}/%{name}
-%{_docdir}/%{name}/*
+%{_datadir}/%{name}/resources
+%{_datadir}/%{name}/salome_adm
+%{_includedir}/%{name}
+%{_libdir}/%{name}
+%doc %{_docdir}/%{name}
 %dir %{_bindir}/%{name}
 %{_bindir}/%{name}/*
 %{_miconsdir}/%{name}.png
@@ -489,13 +490,8 @@ cp -fpar %{build_root}/* %{buildroot}
 #-----------------------------------------------------------------------
 %files		samples
 %defattr(-,root,root)
-%dir %{_datadir}/%{name}/HXX2SALOME_Test
-%{_datadir}/%{name}/HXX2SALOME_Test/*
-%dir %{_datadir}/%{name}/samples
-%{_datadir}/%{name}/samples/*
-%dir %{_datadir}/%{name}/Tests
-%{_datadir}/%{name}/Tests/*
-%dir %{_datadir}/%{name}/yacssamples
-%{_datadir}/%{name}/yacssamples/*
-%dir %{_datadir}/%{name}/yacssupervsamples
-%{_datadir}/%{name}/yacssupervsamples/*
+%{_datadir}/%{name}/HXX2SALOME_Test
+%{_datadir}/%{name}/samples
+%{_datadir}/%{name}/Tests
+%{_datadir}/%{name}/yacssamples
+%{_datadir}/%{name}/yacssupervsamples
