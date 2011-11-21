@@ -1,5 +1,10 @@
 %define		srcv			src%{version}
 
+# not enabled by default
+%bcond_with	paravis
+
+%define		paraview_namever	paraview-3.12
+
 # BLSURFPLUGIN cannot be built because it requires "a BLSURF sdk"
 #	see BUILD/src6.3.1/BLSURFPLUGIN_SRC_6.3.1/README for details
 %define		modules			GHS3DPRLPLUGIN HELLO PYCALCULATOR YACS HexoticPLUGIN PYHELLO NETGENPLUGIN
@@ -35,6 +40,9 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:	bison flex
 BuildRequires:	boost-devel
+%if %{with paravis}
+BuildRequires:	cmake
+%endif
 BuildRequires:	cppunit-devel
 BuildRequires:	doxygen
 BuildRequires:	gcc-gfortran
@@ -55,6 +63,9 @@ BuildRequires:	omninotify-devel
 BuildRequires:	opencascade
 BuildRequires:	openmpi
 BuildRequires:	openmpi-devel
+%if %{with paravis}
+BuildRequires:	paraview-devel
+%endif
 BuildRequires:	python-omniidl
 BuildRequires:	python-omniorb
 BuildRequires:	python-qt4-devel
@@ -105,6 +116,8 @@ Patch13:	python-console-in-qt4.4+.patch
 # http://www.salome-platform.org/forum/forum_9/508970876
 Patch14:	qobject_static_cast.patch
 
+Patch15:	paravis.patch
+
 %description
 SALOME is an open-source software that provides a generic platform for
 Pre- and Post-Processing for numerical simulation. It is based on an open
@@ -149,6 +162,9 @@ rm -fr %{srcv}
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%if %{with paravis}
+%patch15 -p1
+%endif
 
 # want the kernel version that doesn't want to link to /usr/lib/lbxml.a
 cp -f KERNEL_SRC_%{version}/salome_adm/unix/config_files/check_libxml.m4 MED_SRC_%{version}/adm_local/unix/config_files/check_libxml.m4
@@ -291,12 +307,26 @@ for module in LIGHT ATOMGEN ATOMIC ATOMSOLV; do
     popd
 done
 
-# FIXME broken cmake config files in paraview-devel
-# and the one included has %#{buildroot} on it
-%if 0
+%if %{with paravis}
 pushd PARAVIS_SRC_%{version}
-    %cmake
-    %make
+# FIXME should just link allowing undefined symbols
+# the huge link line is for PVGUI
+# FIXME should modify the related CMakeLists.txt file for PVGUI
+# or remove --no-undefined from LD_FLAGS
+%ifarch x86_64 ppc64
+    perl -pi -e 's|/lib/|/%{_lib}/|;' src/Plugins/ParaMEDCorba/CMakeLists.txt
+%endif
+    %cmake								\
+	-DGUI_ROOT_DIR:PATH=$GUI_ROOT_DIR				\
+	-DKERNEL_ROOT_DIR:PATH=$KERNEL_ROOT_DIR				\
+	-DMED_ROOT_DIR:PATH=$MED_ROOT_DIR				\
+	-DVISU_ROOT_DIR:PATH=$VISU_ROOT_DIR				\
+	-DPLATFORM_LIBADD="-lpython2.7 -lQtCore -lQtGui -lQtXml -L%{_libdir}/paraview -lQtPython -lvtkCommon -lvtkFiltering -lpqCore -lpqComponents -lpqWidgets -lvtkPVClientServerCore -lvtkIO -lvtkGraphics -lvtkViews -lvtkRendering -lvtkWidgets -lvtkPVVTKExtensions -lQVTK -lvtkVolumeRendering -lvtkGenericFiltering -lvtkParallel -lvtkPVVTKExtensions -lvtkPVServerImplementation -lvtkImaging -lvtkHybrid -lvtkPVCommon -lvtkInfovis -L${KERNEL_ROOT_DIR}/%{_lib}/salome -lSalomeIDLKernel -lSalomeApp -lLightApp -lCAM -lsuit -lEvent -lPyInterp -lqtx -lSalomeObject -lTOOLSDS -lSalomeContainer -lSalomeNS -lSalomeDS -lSalomeLifeCycleCORBA -lSALOMELocalTrace"
+    make
+    # This is not easily maintenable and actuall should be impressed
+    # if things works when mixing versions and guess hacking interfaces
+    perl -pi -e 's|(SET\(FULLDIR) (\$\{CMAKE)|$1 %{build_root}/$2|;'	\
+	%{build_root}/usr/salome_adm/cmake_files/install_python_from_idl.cmake
     %salome_makeinstall_std
     %{ldflags_build_root}
 popd
@@ -392,6 +422,9 @@ export SMESH_ROOT_DIR=%{_prefix}
 export GEOM_ROOT_DIR=%{_prefix}
 export GUI_ROOT_DIR=%{_prefix}
 export YACS_ROOT_DIR=%{_prefix}
+%if %{with paravis}
+export PARAVIS_ROOT_DIR=%{_prefix}
+%endif
 export CASROOT=%{_datadir}/opencascade
 export CSF_GraphicShr=%{_libdir}/libTKOpenGl.so.1.0.0
 export LD_LIBRARY_PATH=%{_libdir}/salome:\$LD_LIBRARY_PATH
@@ -473,6 +506,16 @@ pushd %{buildroot}%{_docdir}
     find salome -type d | xargs chmod 0755
 popd
 
+%if %{with paravis}
+pushd %{buildroot}%{_prefix}
+    mkdir -p include/%{paraview_namever}
+    mv -f include/vtk*.h include/%{paraview_namever}
+    mkdir -p %{_lib}/%{paraview_namever}
+    mv -f lib/paraview/* %{_lib}/%{paraview_namever}
+    mv -f share/ParaMEDCorbaServerManager.xml %{_lib}/%{paraview_namever}
+popd
+%endif
+
 #-----------------------------------------------------------------------
 %files
 %defattr(-,root,root)
@@ -492,6 +535,10 @@ popd
 %{_iconsdir}/%{name}.png
 %{_datadir}/pixmaps/%{name}.png
 %{_datadir}/applications/mandriva-%{name}.desktop
+%if %{with paravis}
+%{_includedir}/%{paraview_namever}
+%{_libdir}/%{paraview_namever}
+%endif
 
 #-----------------------------------------------------------------------
 %files		samples
