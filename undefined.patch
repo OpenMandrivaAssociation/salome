@@ -1,0 +1,31 @@
+--- src6.3.1/COMPONENT_SRC_6.3.1/src/UndefinedSymbolComponent/UndefinedSymbolComponent.cxx.orig	2011-11-11 21:00:29.483685847 -0200
++++ src6.3.1/COMPONENT_SRC_6.3.1/src/UndefinedSymbolComponent/UndefinedSymbolComponent.cxx	2011-11-11 21:00:45.041757857 -0200
+@@ -58,7 +58,7 @@ UndefinedSymbolComponentEngine::~Undefin
+ {
+ }
+ 
+-extern "C" { long CallUndefined() ; } ;
++extern "C" { long CallUndefined() { fputs("CallUndefined()", stderr); abort(); } } ;
+ 
+ CORBA::Long UndefinedSymbolComponentEngine::UndefinedSymbol() {
+   beginService( " UndefinedSymbolComponentEngine::UndefinedSymbol" );
+--- src6.3.1/HOMARD_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-17 04:26:53.296700338 -0200
++++ src6.3.1/HOMARD_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-17 04:26:59.782735797 -0200
+@@ -53,6 +53,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: %.ts
+--- src6.3.1/HOMARD_SRC_6.3.1/src/HOMARDGUI/HOMARDGUI.h.orig	2011-11-17 04:31:50.106322398 -0200
++++ src6.3.1/HOMARD_SRC_6.3.1/src/HOMARDGUI/HOMARDGUI.h	2011-11-17 04:31:53.104338774 -0200
+@@ -69,7 +69,6 @@ private slots:
+     void EditAsciiFile();
+     void LanceCalcul();
+     void NextIter();
+-    void XmGraceFichier();
+ 
+ public:
+    virtual void  contextMenuPopup( const QString&, QMenu*, QString& );

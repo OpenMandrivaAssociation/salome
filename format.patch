@@ -1,0 +1,86 @@
+--- src6.3.1/GUI_SRC_6.3.1/src/CAM/CAM_Application.cxx.orig	2011-11-11 20:51:16.329207456 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/CAM/CAM_Application.cxx	2011-11-11 20:52:20.935491587 -0200
+@@ -250,7 +250,7 @@ void CAM_Application::loadModules()
+       if ( desktop() && desktop()->isVisible() )
+         SUIT_MessageBox::critical( desktop(), tr( "Loading modules" ), wrn );
+       else
+-        qWarning( qPrintable( wrn ) ); 
++        qWarning( "%s", qPrintable( wrn ) ); 
+     }
+   }
+ }
+@@ -270,19 +270,19 @@ CAM_Module* CAM_Application::loadModule(
+ {
+   if ( myInfoList.isEmpty() )
+   {
+-    qWarning( qPrintable( tr( "Modules configuration is not defined." ) ) );
++    qWarning( "%s", qPrintable( tr( "Modules configuration is not defined." ) ) );
+     return 0;
+   }
+ 
+   if ( !isModuleAccessible( modName ) ) {
+-    qWarning( qPrintable( tr( "Module \"%1\" cannot be loaded in this application." ).arg( modName ) ) );
++    qWarning( "%s", qPrintable( tr( "Module \"%1\" cannot be loaded in this application." ).arg( modName ) ) );
+     return 0;
+   }
+ 
+   QString libName = moduleLibrary( modName );
+   if ( libName.isEmpty() )
+   {
+-    qWarning( qPrintable( tr( "Information about module \"%1\" doesn't exist." ).arg( modName ) ) );
++    qWarning( "%s", qPrintable( tr( "Information about module \"%1\" doesn't exist." ).arg( modName ) ) );
+     return 0;
+   }
+ 
+@@ -334,7 +334,7 @@ CAM_Module* CAM_Application::loadModule(
+     if ( desktop() && desktop()->isVisible() )
+       SUIT_MessageBox::warning( desktop(), tr( "Error" ), err );
+     else
+-      qWarning( qPrintable( err ) ); 
++      qWarning( "%s", qPrintable( err ) ); 
+   }
+ 
+   return module;
+@@ -410,7 +410,7 @@ bool CAM_Application::activateModule( CA
+       if ( desktop() && desktop()->isVisible() )
+         SUIT_MessageBox::critical( desktop(), tr( "ERROR_TLT" ), wrn );
+       else
+-        qWarning( qPrintable( wrn ) ); 
++        qWarning( "%s", qPrintable( wrn ) ); 
+       myModule = 0;
+       return false;
+     }
+--- src6.3.1/GUI_SRC_6.3.1/src/LightApp/LightApp_OBSelector.cxx.orig	2011-11-11 20:52:47.481608407 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/LightApp/LightApp_OBSelector.cxx	2011-11-11 20:52:53.175633470 -0200
+@@ -105,7 +105,7 @@ void LightApp_OBSelector::onSelectionCha
+   mySelectedList.clear();
+   selectionChanged();
+   QTime t2 = QTime::currentTime();
+-  qDebug( QString( "selection time = %1 msecs" ).arg( t1.msecsTo( t2 ) ).toLatin1().constData() );
++  qDebug( "%s", QString( "selection time = %1 msecs" ).arg( t1.msecsTo( t2 ) ).toLatin1().constData() );
+ }
+ 
+ /*!
+--- src6.3.1/GUI_SRC_6.3.1/src/SalomeApp/SalomeApp_DataModel.cxx.orig	2011-11-11 20:53:22.568762882 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/SalomeApp/SalomeApp_DataModel.cxx	2011-11-11 20:54:14.807993014 -0200
+@@ -245,7 +245,8 @@ void showTree( SUIT_DataObject* root )
+   {
+     QString marg; marg.fill( ' ', 3*it.depth() );
+     QString nnn = "%1 '%2'";
+-    qDebug( nnn.arg( marg ).arg( it.current()->name() ).toLatin1() );
++    const char *latin1 = nnn.arg( marg ).arg( it.current()->name() ).toLatin1();
++    qDebug( "%s", latin1 );
+   }
+ }
+ 
+--- src6.3.1/HEXABLOCK_SRC_6.3.1/src/HEXABLOCK/HexXmlWriter.hxx.orig	2011-11-17 04:17:33.084634792 -0200
++++ src6.3.1/HEXABLOCK_SRC_6.3.1/src/HEXABLOCK/HexXmlWriter.hxx	2011-11-17 04:17:42.506686371 -0200
+@@ -89,7 +89,7 @@ inline void XmlWriter::addAttribute (cpc
+ inline void XmlWriter::addMot (cpchar mot)
+ {
+    if (on_file) 
+-      fprintf (xml_file, mot);
++      fprintf (xml_file, "%s", mot);
+    else 
+       xml_buffer += mot;
+ }

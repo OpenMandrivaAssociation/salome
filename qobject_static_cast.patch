@@ -1,0 +1,120 @@
+--- src6.3.1/GUI_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-16 15:12:37.130146523 -0200
++++ src6.3.1/GUI_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-16 17:56:20.678467007 -0200
+@@ -67,6 +67,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $(MOC_FLAGS) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: resources/%.ts
+--- src6.3.1/MED_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-07-07 06:42:15.000000000 -0300
++++ src6.3.1/MED_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-16 18:56:42.289605995 -0200
+@@ -71,6 +71,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: %.ts
+--- src6.3.1/GEOM_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-16 21:59:28.165382920 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-16 21:59:35.041413424 -0200
+@@ -61,6 +61,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: %.ts
+--- src6.3.1/SMESH_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-16 23:46:08.606930452 -0200
++++ src6.3.1/SMESH_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-16 23:46:09.972937600 -0200
+@@ -61,6 +61,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: %.ts
+--- src6.3.1/VISU_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-17 00:18:22.242159146 -0200
++++ src6.3.1/VISU_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-17 00:18:35.200228757 -0200
+@@ -69,6 +69,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: %.ts
+--- src6.3.1/HELLO_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-17 00:39:47.584983901 -0200
++++ src6.3.1/HELLO_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-17 00:39:59.247045154 -0200
+@@ -61,6 +61,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: %.ts
+--- src6.3.1/YACS_SRC_6.3.1/adm/unix/make_end.am.orig	2011-11-17 01:02:43.169199775 -0200
++++ src6.3.1/YACS_SRC_6.3.1/adm/unix/make_end.am	2011-11-17 01:02:56.567274256 -0200
+@@ -41,6 +41,7 @@ SUFFIXES += .h _moc.cxx
+ 
+ .h_moc.cxx :
+ 	$(MOC) -p . -o $@ $<
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ clean-local-h2Moc :
+ 	rm -f *_moc.cxx
+--- src6.3.1/ATOMSOLV_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-17 03:33:10.972614161 -0200
++++ src6.3.1/ATOMSOLV_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-17 03:33:22.163678614 -0200
+@@ -60,6 +60,7 @@ salomeidldir       = ${prefix}/idl/salom
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.h
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: resources/%.ts
+--- src6.3.1/HEXABLOCK_SRC_6.3.1/adm_local/unix/make_common_starter.am.orig	2011-11-17 03:48:09.721746047 -0200
++++ src6.3.1/HEXABLOCK_SRC_6.3.1/adm_local/unix/make_common_starter.am	2011-11-17 03:48:11.536756309 -0200
+@@ -54,6 +54,7 @@ docdir             = $(datadir)/doc/salo
+ # meta object implementation files generation (moc)
+ %_moc.cxx: %.hxx
+ 	$(MOC) $< -o $@
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ # translation (*.qm) files generation (lrelease)
+ %.qm: resources/%.ts
+--- src6.3.1/JOBMANAGER_SRC_6.3.1/src/genericgui/Makefile.am.orig	2011-11-17 05:13:45.911822615 -0200
++++ src6.3.1/JOBMANAGER_SRC_6.3.1/src/genericgui/Makefile.am	2011-11-17 05:13:58.997891893 -0200
+@@ -60,6 +60,7 @@ SUFFIXES = .hxx _moc.cxx .qrc _qrc.cxx
+ 
+ .hxx_moc.cxx :
+ 	$(QT_MOC) -p . -o $@ $<
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ .qrc_qrc.cxx :
+ 	$(QT_RCC) -name $(*F)  $< -o $@
+--- src6.3.1/YACS_SRC_6.3.1/src/salomegui/Makefile.am.orig	2011-11-18 01:46:45.570060044 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/salomegui/Makefile.am	2011-11-18 01:46:53.208097049 -0200
+@@ -104,6 +104,7 @@ SUFFIXES = .hxx _moc.cxx .qrc _qrc.cxx
+ 
+ .hxx_moc.cxx :
+ 	$(QT_MOC) -p . -o $@ $<
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ .qrc_qrc.cxx :
+ 	$(QT_RCC) -name $(*F)  $< -o $@
+--- src6.3.1/JOBMANAGER_SRC_6.3.1/src/salomegui/Makefile.am.orig	2011-11-18 03:38:17.909656077 -0200
++++ src6.3.1/JOBMANAGER_SRC_6.3.1/src/salomegui/Makefile.am	2011-11-18 03:38:28.964711653 -0200
+@@ -66,6 +66,7 @@ SUFFIXES = .hxx _moc.cxx .qrc _qrc.cxx
+ 
+ .hxx_moc.cxx :
+ 	$(QT_MOC) -p . -o $@ $<
++	perl -pi -e 's|static_cast|dynamic_cast|;' $@
+ 
+ .qrc_qrc.cxx :
+ 	$(QT_RCC) -name $(*F)  $< -o $@

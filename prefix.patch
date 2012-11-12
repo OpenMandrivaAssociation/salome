@@ -1,0 +1,24 @@
+--- src6.3.1/HXX2SALOME_SRC_6.3.1/scripts/Makefile.am.orig	2011-11-11 21:08:48.821998429 -0200
++++ src6.3.1/HXX2SALOME_SRC_6.3.1/scripts/Makefile.am	2011-11-11 21:09:13.644113436 -0200
+@@ -2,6 +2,8 @@
+ # Copyright (C) CEA, EDF
+ # Author : Nicolas Crouzet (CEA)
+ # --
++bindir = $(prefix)/bin/salome
++
+ bin_SCRIPTS = hxx2salome \
+               parse01.awk \
+               parse0.awk \
+@@ -15,4 +17,4 @@ bin_SCRIPTS = hxx2salome \
+ 	      cpp_compo_template.tgz
+ 
+ install-data-hook:
+-	\cp -f ${srcdir}/template_src.tgz ${srcdir}/template_coupling_src.tgz $(DESTDIR)/${exec_prefix}/bin
++	\cp -f ${srcdir}/template_src.tgz ${srcdir}/template_coupling_src.tgz $(DESTDIR)/${exec_prefix}/bin/salome
+--- src6.3.1/HXX2SALOME_SRC_6.3.1/src/Makefile.am.orig	2011-11-11 21:09:35.670215480 -0200
++++ src6.3.1/HXX2SALOME_SRC_6.3.1/src/Makefile.am	2011-11-11 21:09:42.356246458 -0200
+@@ -1,3 +1,4 @@
++bindir = $(prefix)/bin/salome
+ bin_PROGRAMS = ghxx2salome
+ 
+ AM_CPPFLAGS = @QT_MT_INCLUDES@ -DBINDIR="\"${bindir}\""

@@ -1,0 +1,37 @@
+--- src6.3.1/MED_SRC_6.3.1/adm_local/unix/config_files/check_metis.m4.orig	2011-11-11 21:21:07.338438610 -0200
++++ src6.3.1/MED_SRC_6.3.1/adm_local/unix/config_files/check_metis.m4	2011-11-11 21:21:52.800651427 -0200
+@@ -44,8 +44,8 @@ CPPFLAGS_old="${CPPFLAGS}"
+ LIBS_old=$LIBS
+ 
+ if test "x${METISDIR}" != "x" ; then
+-  METIS_CPPFLAGS="-DENABLE_METIS -I${METISDIR}/Lib"
+-  METIS_LIBS="-L${METISDIR} -lmetis"
++  METIS_CPPFLAGS="-DENABLE_METIS"
++  METIS_LIBS="-lmetis"
+ fi
+ 
+ metis_ok=no
+@@ -58,7 +58,7 @@ CPPFLAGS="${CPPFLAGS_old} ${METIS_CPPFLA
+ 
+ metis_include_dir_ok=yes
+ if test "x${METISDIR}" != "x" ; then
+-  AC_CHECK_FILE(${METISDIR}/Lib/metis.h,
++  AC_CHECK_FILE(${METISDIR}/include/metis.h,
+                 metis_include_dir_ok=yes,
+                 metis_include_dir_ok=no)
+ fi
+@@ -82,12 +82,12 @@ if test "x${metis_headers_ok}" = "xyes"
+   AC_CHECKING(for METIS binaries)
+   metis_lib_dir_ok=yes
+   if test "x${METISDIR}" != "x" ; then
+-    AC_CHECK_FILE(${METISDIR}/libmetis.a,
++    AC_CHECK_FILE(${METISDIR}/lib${LIB_LOCATION_SUFFIX}/libmetis.a,
+                   metis_lib_dir_ok=yes,
+                   metis_lib_dir_ok=no)
+     if test "x${metis_lib_dir_ok}" = "xno" ; then
+       METIS_LIBSUFFIX=""
+-      AC_CHECK_FILE(${METISDIR}/libmetis.a,
++      AC_CHECK_FILE(${METISDIR}/lib${LIB_LOCATION_SUFFIX}/libmetis.a,
+                     metis_lib_dir_ok=yes,
+                     metis_lib_dir_ok=no)
+     fi

@@ -1,0 +1,185 @@
+--- src6.3.1/YACS_SRC_6.3.1/src/genericgui/Makefile.am.orig	2011-11-11 21:03:26.148503868 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/genericgui/Makefile.am	2011-11-11 21:03:38.763562289 -0200
+@@ -320,7 +320,6 @@ libGenericGui_la_CXXFLAGS  = \
+ 	$(OMNIORB_INCLUDES) \
+ 	$(LIBXML_INCLUDES) \
+ 	$(EXPAT_INCLUDES) \
+-	-I$(KERNEL_ROOT_DIR)/include/salome \
+ 	-I. \
+ 	-I$(srcdir) \
+ 	-I$(srcdir)/../bases \
+@@ -330,7 +329,8 @@ libGenericGui_la_CXXFLAGS  = \
+ 	-I$(srcdir)/../hmi \
+ 	-I$(srcdir)/../salomewrap \
+ 	-I../../idl \
+-	-I../yacsorb 
++	-I../yacsorb \
++	-I$(KERNEL_ROOT_DIR)/include/salome
+ 
+ libGenericGui_la_LDFLAGS   = $(qt4_ldflags) $(qsci4_ldflags) $(GRAPHVIZ_LDFLAGS)
+ 
+--- src6.3.1/YACS_SRC_6.3.1/src/hmi/Makefile.am.orig	2011-11-11 21:04:01.245666405 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/hmi/Makefile.am	2011-11-11 21:04:21.746761349 -0200
+@@ -42,17 +42,17 @@ libHMI_la_LIBADD = \
+ 	$(EXPAT_LIBS) $(LIBXML_LIBS)
+ 
+ libHMI_la_CXXFLAGS = \
+-	$(THREAD_DEF) \
+-	$(PYTHON_CPPFLAGS) \
+-	$(OMNIORB_CXXFLAGS) $(OMNIORB_INCLUDES) \
+-	$(LIBXML_INCLUDES) \
+-	-I$(KERNEL_ROOT_DIR)/include/salome \
+ 	-I$(srcdir)/../bases \
+ 	-I$(srcdir)/../engine \
+ 	-I$(srcdir)/../runtime \
+ 	-I$(srcdir)/../yacsloader \
+ 	-I../../idl \
+-	-I../yacsorb 
++	-I../yacsorb \
++	$(THREAD_DEF) \
++	$(PYTHON_CPPFLAGS) \
++	$(OMNIORB_CXXFLAGS) $(OMNIORB_INCLUDES) \
++	$(LIBXML_INCLUDES) \
++	-I$(KERNEL_ROOT_DIR)/include/salome
+ 
+ EXTRA_DIST = \
+ HMIExport.hxx \
+--- src6.3.1/YACS_SRC_6.3.1/src/runtime_swig/Makefile.am.orig	2011-11-11 21:04:38.420838581 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/runtime_swig/Makefile.am	2011-11-11 21:05:00.126939101 -0200
+@@ -46,15 +46,15 @@ SALOMERuntimeWRAP.cxx: SALOMERuntime.i $
+ SALOMERuntime.py : SALOMERuntimeWRAP.cxx
+ 
+ _SALOMERuntime_la_CXXFLAGS = \
++	-I$(srcdir)/../bases \
++	-I$(srcdir)/../engine \
++	-I$(srcdir)/../runtime \
++	-I../../idl \
+ 	$(THREAD_DEF) \
+ 	$(PYTHON_CPPFLAGS) \
+ 	$(OMNIORB_INCLUDES) \
+ 	$(OMNIORB_CXXFLAGS) \
+ 	-I$(KERNEL_ROOT_DIR)/include/salome \
+-	-I$(srcdir)/../bases \
+-	-I$(srcdir)/../engine \
+-	-I$(srcdir)/../runtime \
+-	-I../../idl \
+ 	$(LIBXML_INCLUDES)
+ 
+ _SALOMERuntime_la_LDFLAGS  = -module
+--- src6.3.1/YACS_SRC_6.3.1/src/salomewrap/Makefile.am.orig	2011-11-11 21:05:19.069026830 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/salomewrap/Makefile.am	2011-11-11 21:05:37.235110988 -0200
+@@ -41,13 +41,16 @@ MOC_FILES = \
+ nodist_libSalomeWrap_la_SOURCES = $(MOC_FILES)
+ 
+ libSalomeWrap_la_CXXFLAGS = \
++	-I$(srcdir)/../bases \
++	-I$(srcdir)/../engine \
++	-I$(srcdir)/../runtime \
++	-I$(srcdir)/../yacsloader \
+ 	$(THREAD_DEF) \
+ 	$(PYTHON_CPPFLAGS) \
+ 	$(OMNIORB_CXXFLAGS) $(OMNIORB_INCLUDES) \
+ 	$(BOOST_CPPFLAGS) \
+ 	-I$(KERNEL_ROOT_DIR)/include/salome \
+ 	-I$(GUI_ROOT_DIR)/include/salome \
+-	-I$(srcdir)/../bases \
+ 	$(qt4_cppflags)
+ 
+ libSalomeWrap_la_LDFLAGS  = \
+--- src6.3.1/YACS_SRC_6.3.1/src/yacsloader/Makefile.am.orig	2011-11-11 21:05:55.789196914 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/yacsloader/Makefile.am	2011-11-11 21:07:17.364574764 -0200
+@@ -51,14 +51,14 @@ libYACSloader_la_LIBADD = ../engine/libY
+ libYACSloader_la_LDFLAGS = $(OMNIORB_LIBS) $(EXPAT_LIBS)
+ 
+ AM_CXXFLAGS = \
++              -I$(srcdir) \
++              -I$(srcdir)/../bases \
++              -I$(srcdir)/../engine \
+ 							$(THREAD_DEF) \
+               $(PYTHON_CPPFLAGS) \
+               $(OMNIORB_INCLUDES) \
+               $(OMNIORB_CXXFLAGS) \
+-							$(EXPAT_INCLUDES) \
+-              -I$(srcdir) \
+-              -I$(srcdir)/../bases \
+-              -I$(srcdir)/../engine
++							$(EXPAT_INCLUDES)
+ 
+ if SALOME_KERNEL
+ SALOME_LIBS=$(KERNEL_LDFLAGS) -lSalomeLifeCycleCORBA -lSalomeIDLKernel -lSalomeNS -lOpUtil \
+@@ -72,14 +72,14 @@ endif
+ driver_SOURCES = driver.cxx 
+ 
+ driver_CXXFLAGS = -g -DYACS_PTHREAD \
++              -I$(srcdir)/../bases \
++              -I$(srcdir)/../engine \
++              -I$(srcdir)/../runtime \
+               $(PYTHON_CPPFLAGS) \
+ 							$(SALOME_INCL_PATH) \
+               $(OMNIORB_INCLUDES) \
+               $(OMNIORB_CXXFLAGS) \
+-              $(EXPAT_INCLUDES) \
+-              -I$(srcdir)/../bases \
+-              -I$(srcdir)/../engine \
+-              -I$(srcdir)/../runtime
++              $(EXPAT_INCLUDES)
+ 
+ driver_LDADD = libYACSloader.la \
+                ../runtime/libYACSRuntimeSALOME.la \
+@@ -95,13 +95,13 @@ driver_LDFLAGS = $(PYTHON_EXTRA_LDFLAGS)
+ resume_SOURCES = resume.cxx
+ 
+ resume_CXXFLAGS = -g -DYACS_PTHREAD \
++              -I$(srcdir)/../bases \
++              -I$(srcdir)/../engine \
++              -I$(srcdir)/../runtime \
+               $(PYTHON_CPPFLAGS) \
+               $(OMNIORB_INCLUDES) \
+               $(OMNIORB_CXXFLAGS) \
+-              $(EXPAT_INCLUDES) \
+-              -I$(srcdir)/../bases \
+-              -I$(srcdir)/../engine \
+-              -I$(srcdir)/../runtime
++              $(EXPAT_INCLUDES)
+ 
+ resume_LDADD = libYACSloader.la \
+                ../runtime/libYACSRuntimeSALOME.la \
+@@ -117,13 +117,13 @@ resume_LDFLAGS = $(PYTHON_EXTRA_LDFLAGS)
+ debugger_SOURCES = debugger.cxx 
+ 
+ debugger_CXXFLAGS = -g -DYACS_PTHREAD \
++              -I$(srcdir)/../bases \
++              -I$(srcdir)/../engine \
++              -I$(srcdir)/../runtime \
+               $(PYTHON_CPPFLAGS) \
+               $(OMNIORB_INCLUDES) \
+               $(OMNIORB_CXXFLAGS) \
+-              $(EXPAT_INCLUDES) \
+-              -I$(srcdir)/../bases \
+-              -I$(srcdir)/../engine \
+-              -I$(srcdir)/../runtime
++              $(EXPAT_INCLUDES)
+ 
+ debugger_LDADD = libYACSloader.la \
+                ../runtime/libYACSRuntimeSALOME.la \
+--- src6.3.1/YACS_SRC_6.3.1/src/yacsloader_swig/Makefile.am.orig	2011-11-11 21:07:42.109689392 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/yacsloader_swig/Makefile.am	2011-11-11 21:08:05.619798306 -0200
+@@ -48,14 +48,14 @@ _loader_la_SOURCES =   \
+ 	loaderWRAP.cxx
+ 
+ _loader_la_CXXFLAGS = \
++	-I$(srcdir)/../bases \
++	-I$(srcdir)/../engine \
++	-I$(srcdir)/../yacsloader \
+ 	$(THREAD_DEF) \
+ 	$(PYTHON_CPPFLAGS) \
+ 	$(OMNIORB_INCLUDES) \
+ 	$(OMNIORB_CXXFLAGS) \
+-        $(EXPAT_INCLUDES) \
+-	-I$(srcdir)/../bases \
+-	-I$(srcdir)/../engine \
+-	-I$(srcdir)/../yacsloader
++        $(EXPAT_INCLUDES)
+ 
+ _loader_la_LDFLAGS  = -module 
+ 

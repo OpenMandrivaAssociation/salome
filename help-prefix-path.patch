@@ -1,0 +1,14 @@
+--- src6.3.1/GUI_SRC_6.3.1/src/LightApp/LightApp_Application.cxx.orig	2011-11-11 21:32:03.925511047 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/LightApp/LightApp_Application.cxx	2011-11-11 21:32:09.939539174 -0200
+@@ -903,11 +903,7 @@ public:
+               const QString&        theContext = QString() )
+     : myApp( theApp ),
+       myParams( theParams ),
+-#ifdef WIN32
+       myHelpFile( "file://" + theHelpFile ),
+-#else
+-      myHelpFile( "file:" + theHelpFile ),
+-#endif
+       myContext( theContext ),
+       myStatus(0),
+       myLApp( app )

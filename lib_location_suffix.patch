@@ -1,0 +1,96 @@
+--- src6.3.1/GHS3DPRLPLUGIN_SRC_6.3.1/configure.ac.orig	2011-11-11 20:05:48.125582256 -0200
++++ src6.3.1/GHS3DPRLPLUGIN_SRC_6.3.1/configure.ac	2011-11-11 20:06:00.674639897 -0200
+@@ -90,6 +90,9 @@ AC_ENABLE_STATIC(no)
+ AC_LIBTOOL_DLOPEN
+ AC_PROG_LIBTOOL
+ 
++# Testing linker
++AC_LINKER_OPTIONS
++
+ dnl Fix up the INSTALL macro if it s a relative path. We want the
+ dnl full-path to the binary instead.
+ case "$INSTALL" in
+--- src6.3.1/KERNEL_SRC_6.3.1/salome_adm/unix/config_files/ac_linker_options.m4.orig	2011-11-11 20:06:29.451772071 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/salome_adm/unix/config_files/ac_linker_options.m4	2011-11-11 20:06:40.769824052 -0200
+@@ -26,7 +26,11 @@ dnl
+ AC_DEFUN([AC_LINKER_OPTIONS],[
+ 
+   AC_CHECKING(for LIB_LOCATION_SUFFIX)
+-  LIB_LOCATION_SUFFIX=""
++  if uname -m | grep 64; then
++    LIB_LOCATION_SUFFIX="64"
++  else
++    LIB_LOCATION_SUFFIX=""
++  fi
+   AC_SUBST(LIB_LOCATION_SUFFIX)
+   AC_MSG_RESULT(LIB_LOCATION_SUFFIX is $LIB_LOCATION_SUFFIX)
+ 
+--- src6.3.1/NETGENPLUGIN_SRC_6.3.1/configure.ac.orig	2011-11-11 20:07:08.707952387 -0200
++++ src6.3.1/NETGENPLUGIN_SRC_6.3.1/configure.ac	2011-11-11 20:07:15.625984143 -0200
+@@ -96,6 +96,9 @@ AC_ENABLE_STATIC(no)
+ AC_LIBTOOL_DLOPEN
+ AC_PROG_LIBTOOL
+ 
++# Testing linker
++AC_LINKER_OPTIONS
++
+ dnl Fix up the INSTALL macro if it s a relative path. We want the
+ dnl full-path to the binary instead.
+ case "$INSTALL" in
+--- src6.3.1/YACS_SRC_6.3.1/adm/unix/config_files/check_salome.m4.orig	2011-11-11 20:09:50.837696894 -0200
++++ src6.3.1/YACS_SRC_6.3.1/adm/unix/config_files/check_salome.m4	2011-11-11 20:10:00.402740809 -0200
+@@ -79,7 +79,7 @@ if test -f ${KERNEL_DIR}/bin/salome/runS
+       AC_MSG_WARN("Cannot find DSC Ports module distribution")
+    fi
+ 
+-   KERNEL_LDFLAGS=-L${KERNEL_ROOT_DIR}/lib/salome
++   KERNEL_LDFLAGS=-L${KERNEL_ROOT_DIR}/lib${LIB_LOCATION_SUFFIX}/salome
+    KERNEL_CXXFLAGS=-I${KERNEL_ROOT_DIR}/include/salome
+ 
+    AC_SUBST(KERNEL_ROOT_DIR)
+--- src6.3.1/YACS_SRC_6.3.1/adm/unix/make_begin.am.orig	2011-11-11 20:10:24.804852853 -0200
++++ src6.3.1/YACS_SRC_6.3.1/adm/unix/make_begin.am	2011-11-11 20:10:33.626893357 -0200
+@@ -23,7 +23,7 @@
+ 
+ # Standard directory for installation
+ salomeincludedir   = $(includedir)/salome
+-libdir             = $(prefix)/lib/salome
++libdir             = $(prefix)/lib$(LIB_LOCATION_SUFFIX)/salome
+ bindir             = $(prefix)/bin/salome
+ salomescriptdir    = $(bindir)
+ salomepythondir    = $(pythondir)/salome
+--- src6.3.1/YACS_SRC_6.3.1/src/genericgui/Makefile.am.orig	2011-11-11 20:10:53.820986069 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/genericgui/Makefile.am	2011-11-11 20:11:04.899036923 -0200
+@@ -17,7 +17,7 @@
+ # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+ #
+ 
+-libdir             = $(prefix)/lib/salome
++libdir             = $(prefix)/lib$(LIB_LOCATION_SUFFIX)/salome
+ bindir             = $(prefix)/bin/salome
+ 
+ lib_LTLIBRARIES = libGenericGui.la
+--- src6.3.1/HEXABLOCKPLUGIN_SRC_6.3.1/configure.ac.orig	2011-11-17 04:14:07.604495955 -0200
++++ src6.3.1/HEXABLOCKPLUGIN_SRC_6.3.1/configure.ac	2011-11-17 04:14:33.481640358 -0200
+@@ -97,6 +97,9 @@ AC_ENABLE_STATIC(no)
+ AC_LIBTOOL_DLOPEN
+ AC_PROG_LIBTOOL
+ 
++# Testing linker
++AC_LINKER_OPTIONS
++
+ dnl Fix up the INSTALL macro if it s a relative path. We want the
+ dnl full-path to the binary instead.
+ case "$INSTALL" in
+--- src6.3.1/JOBMANAGER_SRC_6.3.1/configure.ac.orig	2011-07-07 06:43:48.000000000 -0300
++++ src6.3.1/JOBMANAGER_SRC_6.3.1/configure.ac	2011-11-17 05:20:33.112979518 -0200
+@@ -81,6 +81,9 @@ I2_CHECK_QT4
+ AC_CHECK_OMNIORB
+ CHECK_BOOST
+ 
++# Testing linker
++AC_LINKER_OPTIONS
++
+ # Optional products
+ CHECK_SPHINX
+ 

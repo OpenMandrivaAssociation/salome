@@ -1,0 +1,243 @@
+--- src6.3.1/build_root/usr/salome_adm/cmake_files/install_python_from_idl.cmake.orig	2011-11-21 05:32:47.170925723 -0200
++++ src6.3.1/build_root/usr/salome_adm/cmake_files/install_python_from_idl.cmake	2011-11-21 05:41:42.807517201 -0200
+@@ -20,7 +20,7 @@
+ # See http://www.salome-platform.org/ or email : webmaster.salome@opencascade.com
+ #
+ 
+-SET(FULLDIR ${CMAKE_INSTALL_PREFIX}/${DIR})
++SET(FULLDIR /home/pcpa/mandriva/svn/salome/BUILD/src6.3.1/build_root/${CMAKE_INSTALL_PREFIX}/${DIR})
+ FILE(MAKE_DIRECTORY ${FULLDIR})
+ MESSAGE(STATUS "Compiling ${IDL_FILE} into ${FULLDIR}")
+ EXECUTE_PROCESS(COMMAND ${OMNIORB_IDL_PYTHON} ${IDLPYFLAGS} -C${FULLDIR} ${IDL_FILE})
+--- src6.3.1/PARAVIS_SRC_6.3.1/getwrapclasses.py.orig	2011-07-13 07:10:38.000000000 -0300
++++ src6.3.1/PARAVIS_SRC_6.3.1/getwrapclasses.py	2011-11-21 00:45:58.447702881 -0200
+@@ -24,7 +24,7 @@ import re
+ classeslistsm = []
+ classeslistvtk = []
+ 
+-from vtkPVServerCommonPython import *
++from vtkPVClientServerCorePython import *
+ from vtkPVServerManagerPython import *
+ 
+ l1 = dir()
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/IO/CMakeLists.txt.orig	2011-11-21 04:53:06.510355582 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/IO/CMakeLists.txt	2011-11-21 04:55:37.157106437 -0200
+@@ -82,10 +82,7 @@ set_source_files_properties(
+ 
+ add_library(vtkMedReader ${MedReader_SRCS})
+ 
+-set(VTK_LIBS vtkIO)
+-if(${HDF5_IS_PARALLEL})
+-  set(VTK_LIBS ${VTK_LIBS} vtkParallel)
+-endif(${HDF5_IS_PARALLEL})
++set(VTK_LIBS vtkIO vtkParallel)
+ 
+ target_link_libraries(vtkMedReader ${MED_LIBRARIES} ${VTK_LIBS})
+ 
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/ParaViewPlugin/pqExtractGroupPanel.cxx.orig	2011-11-21 05:16:17.573171581 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/ParaViewPlugin/pqExtractGroupPanel.cxx	2011-11-21 05:17:20.908479462 -0200
+@@ -32,10 +32,10 @@
+ #include "vtkPVSILInformation.h"
+ #include "vtkGraph.h"
+ #include "vtkSMPropertyHelper.h"
+-#include "vtkSMDoubleArrayInformationHelper.h"
++//#include "vtkSMDoubleArrayInformationHelper.h"
+ #include "vtkStringArray.h"
+ #include "vtkDataSetAttributes.h"
+-#include "vtkProcessModuleConnectionManager.h"
++//#include "vtkProcessModuleConnectionManager.h"
+ 
+ #include "vtkMedUtilities.h"
+ 
+@@ -151,6 +151,7 @@ void pqExtractGroupPanel::linkServerMana
+ 
+ void pqExtractGroupPanel::updateSIL()
+ {
++#if 0
+   this->proxy()->UpdatePropertyInformation(
+       this->proxy()->GetProperty("SILUpdateStamp"));
+ 
+@@ -169,4 +170,5 @@ void pqExtractGroupPanel::updateSIL()
+ 
+     info->Delete();
+     }
++#endif
+ }
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/ParaViewPlugin/pqMedReaderPanel.cxx.orig	2011-11-21 04:59:46.028350623 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/ParaViewPlugin/pqMedReaderPanel.cxx	2011-11-21 05:20:46.317472372 -0200
+@@ -32,10 +32,10 @@
+ #include "vtkPVSILInformation.h"
+ #include "vtkGraph.h"
+ #include "vtkSMPropertyHelper.h"
+-#include "vtkSMDoubleArrayInformationHelper.h"
++//#include "vtkSMDoubleArrayInformationHelper.h"
+ #include "vtkStringArray.h"
+ #include "vtkDataSetAttributes.h"
+-#include "vtkProcessModuleConnectionManager.h"
++//#include "vtkProcessModuleConnectionManager.h"
+ #include "vtkMedReader.h"
+ 
+ #include "vtkMedUtilities.h"
+@@ -246,7 +246,9 @@ void pqMedReaderPanel::setupAnimationMod
+   vtkSMPropertyHelper helper(this->proxy(), "AnimationMode");
+   int mode = helper.GetAsInt(0);
+   this->animationModeChanged(mode);
++#if 0
+   this->updateAvailableTimes();
++#endif
+ }
+ 
+ void pqMedReaderPanel::animationModeChanged(int mode)
+@@ -276,6 +278,7 @@ void pqMedReaderPanel::animationModeChan
+ 
+ void pqMedReaderPanel::updateAvailableTimes()
+ {
++#if 0
+   vtkSMDoubleVectorProperty* prop = vtkSMDoubleVectorProperty::SafeDownCast(
+       this->proxy()->GetProperty("AvailableTimes"));
+ 
+@@ -292,11 +295,12 @@ void pqMedReaderPanel::updateAvailableTi
+     {
+     this->UI->TimeCombo->addItem( QString::number(aux[tid]) );
+     }
+-
++#endif
+ }
+ 
+ void pqMedReaderPanel::updateSIL()
+ {
++#if 0
+   this->proxy()->UpdatePropertyInformation(
+       this->proxy()->GetProperty("SILUpdateStamp"));
+ 
+@@ -315,4 +319,5 @@ void pqMedReaderPanel::updateSIL()
+ 
+     info->Delete();
+     }
++#endif
+ }
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/ParaViewPlugin/pqMedReaderPanel.h.orig	2011-11-21 05:13:27.326345312 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/MedReader/ParaViewPlugin/pqMedReaderPanel.h	2011-11-21 05:22:02.060833202 -0200
+@@ -40,7 +40,9 @@ public:
+ protected slots:
+   void animationModeChanged(int mode);
+ 
++#if 0
+   void timeComboChanged(int timeStep);
++#endif
+ 
+   void updateSIL();
+ 
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/ParaMEDCorba/CMakeLists.txt.orig	2011-11-21 04:20:18.556502681 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/ParaMEDCorba/CMakeLists.txt	2011-11-21 05:41:10.203358897 -0200
+@@ -57,8 +57,12 @@ PROJECT( ParaMEDCorba )
+     SET_TARGET_PROPERTIES(ParaMEDCorbaPlugin PROPERTIES COMPILE_FLAGS "${flags}")
+ 
+     TARGET_LINK_LIBRARIES(ParaMEDMEM2VTK
++      vtkFiltering
++      vtkCommon
+       ${MED_ROOT_DIR}/lib64/salome/libSalomeIDLMED.so
+       ${KERNEL_ROOT_DIR}/lib64/salome/libSalomeIDLKernel.so
++      ${CORBA_LIBS}
++      vtkPVVTKExtensions
+       )
+     TARGET_LINK_LIBRARIES(ParaMEDCorbaPlugin
+       vtkFiltering
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/TableReader/Reader/CMakeLists.txt.orig	2011-11-21 05:24:30.801543222 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/TableReader/Reader/CMakeLists.txt	2011-11-21 05:28:01.070550100 -0200
+@@ -23,6 +23,7 @@ SET(READER_SRCS
+     )
+ 
+ ADD_LIBRARY(vtkVisuTableReader ${READER_SRCS})
++TARGET_LINK_LIBRARIES(vtkVisuTableReader QtCore QtGui vtkFiltering vtkInfovis)
+ 
+ INSTALL(
+     TARGETS vtkVisuTableReader
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/TableReader/TableTo3DFilter/CMakeLists.txt.orig	2011-11-21 05:29:06.536864315 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/Plugins/TableReader/TableTo3DFilter/CMakeLists.txt	2011-11-21 05:31:04.728432438 -0200
+@@ -22,6 +22,7 @@ SET(TABLETO3D_SRCS
+     )
+ 
+ ADD_LIBRARY(vtkTableTo3D ${TABLETO3D_SRCS})
++TARGET_LINK_LIBRARIES(vtkTableTo3D vtkFiltering vtkGraphics)
+ 
+ INSTALL(
+     TARGETS vtkTableTo3D
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/PVGUI/CMakeLists.txt.orig	2011-11-21 01:40:19.468652544 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/PVGUI/CMakeLists.txt	2011-11-21 01:40:51.562827893 -0200
+@@ -166,7 +166,7 @@ FOREACH(output ${MOC_FILES})
+   SET(output ${CMAKE_CURRENT_BINARY_DIR}/${output})
+   ADD_CUSTOM_COMMAND(
+     OUTPUT ${output}
+-    COMMAND ${QT_MOC_EXECUTABLE} ${MOC_FLAGS} ${input} -o ${output}
++    COMMAND ${QT_MOC_EXECUTABLE} ${MOC_FLAGS} ${input} -o ${output} && perl -pi -e 's|static_cast|dynamic_cast|;' ${output}
+     MAIN_DEPENDENCY ${input}
+     )
+ ENDFOREACH(output ${MOC_FILES})
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/PVGUI/PVGUI_Module.cxx.orig	2011-11-21 00:10:19.934147207 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/PVGUI/PVGUI_Module.cxx	2011-11-21 01:14:34.514344528 -0200
+@@ -93,13 +93,13 @@
+ #include <pqVCRController.h>
+ #include <pqViewManager.h>
+ #include <pqPipelineSource.h>
+-#include <vtkPVMain.h>
++//#include <vtkPVMain.h>
+ #include <vtkProcessModule.h>
+ #include <pqParaViewBehaviors.h>
+ #include <pqHelpReaction.h>
+ #include <vtkOutputWindow.h>
+ #include <pqPluginManager.h>
+-#include <vtkPVPluginInformation.h>
++#include <vtkPVPluginsInformation.h>
+ #include <pqSettings.h>
+ #include <pqPythonDialog.h>
+ #include <pqPythonManager.h>
+@@ -132,7 +132,7 @@
+ #include <vtkParallelInstantiator.h>
+ 
+ #include <pqAlwaysConnectedBehavior.h>
+-#include <pqApplicationCore.h>
++#include <pqInterfaceTracker.h>
+ #include <pqAutoLoadPluginXMLBehavior.h>
+ #include <pqCommandLineOptionsBehavior.h>
+ #include <pqCrashRecoveryBehavior.h>
+@@ -307,11 +307,15 @@ void PVGUI_Module::initialize( CAM_Appli
+     pvCreateToolBars();
+     pvCreateMenus();
+ 
++#if 0
+     // new pqParaViewBehaviors(anApp->desktop(), this);
+     // Has to be replaced in order to exclude using of pqQtMessageHandlerBehaviour
+     //  Start pqParaViewBehaviors
+     // Register ParaView interfaces.
+     pqPluginManager* pgm = pqApplicationCore::instance()->getPluginManager();
++#else
++    pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
++#endif
+ 
+     // * adds support for standard paraview views.
+     pgm->addInterface(new pqStandardViewModules(pgm));
+--- src6.3.1/PARAVIS_SRC_6.3.1/src/PVGUI/PVGUI_ParaViewSettingsPane.cxx.orig	2011-11-21 01:15:19.595589339 -0200
++++ src6.3.1/PARAVIS_SRC_6.3.1/src/PVGUI/PVGUI_ParaViewSettingsPane.cxx	2011-11-21 01:16:42.419038166 -0200
+@@ -29,6 +29,7 @@
+ #include <pqOptionsPage.h>
+ #include <pqUndoStack.h>
+ #include "pqApplicationCore.h"
++#include "pqInterfaceTracker.h"
+ #include "pqApplicationOptions.h"
+ #include "pqGlobalRenderViewOptions.h"
+ #include "pqPluginManager.h"
+@@ -374,8 +375,13 @@ PVGUI_ParaViewSettingsPane::PVGUI_ParaVi
+     this, SLOT(pluginLoaded(QObject*)));
+ 
+   // Load panes from already loaded plugins.
++#if 0
+   foreach (QObject* plugin_interface,
+     pqApplicationCore::instance()->getPluginManager()->interfaces())
++#else
++  foreach (QObject* plugin_interface,
++    pqApplicationCore::instance()->interfaceTracker()->interfaces())
++#endif
+     {
+     this->pluginLoaded(plugin_interface);
+     }

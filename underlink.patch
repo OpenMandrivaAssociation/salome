@@ -1,0 +1,308 @@
+--- src6.3.1/COMPONENT_SRC_6.3.1/src/AddComponent/Makefile.am.orig	2011-11-11 20:32:44.891151871 -0200
++++ src6.3.1/COMPONENT_SRC_6.3.1/src/AddComponent/Makefile.am	2011-11-11 20:33:02.994239167 -0200
+@@ -64,7 +64,8 @@ libAddComponentEngine_la_LDFLAGS = \
+ 	-lSalomeLifeCycleCORBA \
+         -lSalomeResourcesManager \
+ 	-lSALOMEBasics \
+-	-lSalomeIDLKernel
++	-lSalomeIDLKernel \
++	$(MPI_LIBS)
+ 
+ AddComponent_CheckOfUndefined_CPPFLAGS = \
+ 	$(libAddComponentEngine_la_CPPFLAGS)
+--- src6.3.1/COMPONENT_SRC_6.3.1/src/CalculatorComponent/Makefile.am.orig	2011-11-11 20:33:23.940340157 -0200
++++ src6.3.1/COMPONENT_SRC_6.3.1/src/CalculatorComponent/Makefile.am	2011-11-11 20:33:44.690440191 -0200
+@@ -54,4 +54,6 @@ libCalculatorEngine_la_LDFLAGS  = \
+ 	-lSalomeNotification \
+ 	-lSALOMELocalTrace \
+ 	$(MED_LDFLAGS) \
+-	-lMEDEngine
++	-lMEDEngine \
++	-lmedmem \
++	-lMEDClientcmodule
+--- src6.3.1/COMPONENT_SRC_6.3.1/src/SIGNALSComponent/Makefile.am.orig	2011-11-11 20:34:05.244539253 -0200
++++ src6.3.1/COMPONENT_SRC_6.3.1/src/SIGNALSComponent/Makefile.am	2011-11-11 20:34:16.938595610 -0200
+@@ -57,7 +57,8 @@ libSIGNALSComponentEngine_la_LDFLAGS  =
+ 	-lSalomeNS \
+ 	-lOpUtil \
+ 	-lRegistry \
+-	-lSalomeNotification
++	-lSalomeNotification \
++	$(MPI_LIBS)
+ 
+ SIGNALSComponent_CheckOfUndefined_CPPFLAGS = \
+ 	$(libSIGNALSComponentEngine_la_CPPFLAGS)
+--- src6.3.1/GHS3DPRLPLUGIN_SRC_6.3.1/src/gui/Makefile.am.orig	2011-11-11 20:34:48.437747380 -0200
++++ src6.3.1/GHS3DPRLPLUGIN_SRC_6.3.1/src/gui/Makefile.am	2011-11-11 20:35:09.130847072 -0200
+@@ -60,8 +60,8 @@ libGHS3DPRLPluginGUI_la_CPPFLAGS = 	\
+ 
+ libGHS3DPRLPluginGUI_la_LDFLAGS =		\
+ 	../GHS3DPRLPlugin/libGHS3DPRLEngine.la	\
+-	${SMESH_LDFLAGS} -lSMESH		\
+-	$(CAS_KERNEL)
++	${SMESH_LDFLAGS} -lSMESH -lsuit	-lqtx	\
++	$(CAS_KERNEL) $(QT_LIBS) $(KERNEL_LDFLAGS) -lSALOMEBasics
+ 
+ # resources files
+ nodist_salomeres_DATA =			\
+--- src6.3.1/GUI_SRC_6.3.1/idl/Makefile.am.orig	2011-11-11 20:35:41.804004430 -0200
++++ src6.3.1/GUI_SRC_6.3.1/idl/Makefile.am	2011-11-11 20:35:50.586046727 -0200
+@@ -45,7 +45,7 @@ libSalomeIDLGUI_la_CPPFLAGS = \
+ 	-I$(top_builddir)/idl \
+ 	@CORBA_CXXFLAGS@ @CORBA_INCLUDES@ @KERNEL_CXXFLAGS@
+ libSalomeIDLGUI_la_LDFLAGS = -no-undefined -version-info=0:0:0
+-libSalomeIDLGUI_la_LIBADD  = @CORBA_LIBS@
++libSalomeIDLGUI_la_LIBADD  = @CORBA_LIBS@ -L$(KERNEL_ROOT_DIR)/lib$(LIB_LOCATION_SUFFIX)/salome -lSalomeIDLKernel
+ 
+ # These variables defines the building process of CORBA files
+ OMNIORB_IDL         = @OMNIORB_IDL@
+--- src6.3.1/GUI_SRC_6.3.1/src/GLViewer/Makefile.am.orig	2011-11-11 20:36:08.713134014 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/GLViewer/Makefile.am	2011-11-11 20:36:26.043217442 -0200
+@@ -116,4 +116,4 @@ nodist_salomeres_DATA =		\
+ 
+ libGLViewer_la_CPPFLAGS = $(QT_INCLUDES) $(CAS_CPPFLAGS) -I$(srcdir)/../SUIT -I$(srcdir)/../Qtx
+ libGLViewer_la_LDFLAGS  = $(QT_MT_LIBS) $(CAS_KERNEL) $(OGL_LIBS)
+-libGLViewer_la_LIBADD   = ../SUIT/libsuit.la
++libGLViewer_la_LIBADD   = ../SUIT/libsuit.la -lX11 -lXmu
+--- src6.3.1/GUI_SRC_6.3.1/src/Qtx/Makefile.am.orig	2011-11-11 20:36:55.941361359 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/Qtx/Makefile.am	2011-11-11 20:37:11.611436772 -0200
+@@ -191,7 +191,7 @@ MOC_FILES =				\
+ nodist_libqtx_la_SOURCES = $(MOC_FILES)
+ 
+ libqtx_la_CPPFLAGS = $(QT_INCLUDES)
+-libqtx_la_LDFLAGS  = $(QT_MT_LIBS)
++libqtx_la_LIBADD  = $(QT_MT_LIBS) $(OGL_LIBS) -lX11
+ 
+ nodist_salomeres_DATA =		\
+ 	Qtx_msg_fr.qm
+--- src6.3.1/KERNEL_SRC_6.3.1/src/DSC/DSC_User/Datastream/Calcium/Makefile.am.orig	2011-11-11 20:37:40.301574824 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/src/DSC/DSC_User/Datastream/Calcium/Makefile.am	2011-11-11 20:38:37.363849315 -0200
+@@ -121,11 +121,13 @@ libSalomeCalcium_la_SOURCES  = calcium_p
+ libSalomeCalcium_la_CXXFLAGS = $(COMMON_CPPFLAGS)
+ 
+ libSalomeCalcium_la_LDFLAGS  = -no-undefined -version-info=0:0:0
++libSalomeCalcium_la_LIBADD = $(top_srcdir)/src/SALOMELocalTrace/libSALOMELocalTrace.la $(top_srcdir)/idl/libSalomeIDLKernel.la $(top_srcdir)/src/Utils/libOpUtil.la $(top_srcdir)/src/DSC/DSC_Basic/libSalomeDSCContainer.la $(top_srcdir)/src/DSC/DSC_User/libSalomeDSCSuperv.la
+ 
+ AM_CFLAGS         = -fexceptions
+ lib_LTLIBRARIES = libCalciumC.la
+-libCalciumC_la_SOURCES = Calcium.c Calcium.cxx calciumf.c
++libCalciumC_la_SOURCES = Calcium.c calciumf.c
+ libCalciumC_la_CXXFLAGS = $(COMMON_CPPFLAGS)
++libCalciumC_la_LIBADD = libSalomeCalcium.la -lstdc++
+ 
+ #
+ # ===============================================================
+--- src6.3.1/KERNEL_SRC_6.3.1/src/LifeCycleCORBA/Test/Makefile.am.orig	2011-11-11 20:38:59.948957892 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/src/LifeCycleCORBA/Test/Makefile.am	2011-11-11 20:39:44.372171482 -0200
+@@ -86,6 +86,7 @@ libLifeCycleCORBATest_la_SOURCES = LifeC
+ libLifeCycleCORBATest_la_CPPFLAGS = $(COMMON_CPPFLAGS)
+ libLifeCycleCORBATest_la_LDFLAGS  = -no-undefined -version-info=0:0:0
+ libLifeCycleCORBATest_la_LIBADD    = $(COMMON_LIBS)
++libLifeCycleCORBATest_la_LIBADD    = $(COMMON_LIBS) $(top_srcdir)/src/LifeCycleCORBA/libSalomeLifeCycleCORBA.la
+ 
+ #
+ # ===============================================================
+@@ -96,7 +97,7 @@ bin_PROGRAMS = TestLifeCycleCORBA
+ TestLifeCycleCORBA_SOURCES  = TestLifeCycleCORBA.cxx
+ TestLifeCycleCORBA_CPPFLAGS = $(COMMON_CPPFLAGS)
+ TestLifeCycleCORBA_LDADD    = \
+-	libLifeCycleCORBATest.la ../libSalomeLifeCycleCORBA.la \
++	libLifeCycleCORBATest.la \
+ 	$(RPATH)/NamingService/Test/libNamingServiceTest.la \
+ 	$(COMMON_LIBS)
+ 
+--- src6.3.1/KERNEL_SRC_6.3.1/src/MPIContainer/Makefile.am.orig	2011-11-11 20:40:06.062275736 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/src/MPIContainer/Makefile.am	2011-11-11 20:40:18.100328524 -0200
+@@ -88,7 +88,7 @@ lib_LTLIBRARIES = libSalomeMPIContainer.
+ libSalomeMPIContainer_la_SOURCES = MPIObject_i.cxx  MPIContainer_i.cxx
+ libSalomeMPIContainer_la_CPPFLAGS = $(COMMON_CPPFLAGS)
+ libSalomeMPIContainer_la_LDFLAGS  = -no-undefined -version-info=0:0:0
+-libSalomeMPIContainer_la_LIBADD   = $(COMMON_LIBS)
++libSalomeMPIContainer_la_LIBADD   = $(COMMON_LIBS) $(MPI_LIBS)
+ 
+ 
+ 
+--- src6.3.1/KERNEL_SRC_6.3.1/src/SALOMELocalTrace/Makefile.am.orig	2011-11-11 20:40:40.542426186 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/src/SALOMELocalTrace/Makefile.am	2011-11-11 20:40:53.284481639 -0200
+@@ -49,4 +49,4 @@ libSALOMELocalTrace_la_SOURCES = \
+ 
+ libSALOMELocalTrace_la_LDFLAGS  = -no-undefined -version-info=0:0:0
+ libSALOMELocalTrace_la_CPPFLAGS = -I$(srcdir)/../Basics
+-libSALOMELocalTrace_la_LIBADD   = ../Basics/libSALOMEBasics.la
++libSALOMELocalTrace_la_LIBADD   = ../Basics/libSALOMEBasics.la -lomniORB4 -lpthread
+--- src6.3.1/MED_SRC_6.3.1/src/MEDSPLITTER/Test/Makefile.am.orig	2011-11-11 20:41:15.062576462 -0200
++++ src6.3.1/MED_SRC_6.3.1/src/MEDSPLITTER/Test/Makefile.am	2011-11-11 20:41:40.996689420 -0200
+@@ -48,6 +48,7 @@ libMEDSPLITTERTest_la_CPPFLAGS= @CPPUNIT
+ 	-I$(srcdir)/../../INTERP_KERNEL/GaussPoints \
+ 	-I$(srcdir)/../../INTERP_KERNEL
+ libMEDSPLITTERTest_la_LDFLAGS= $(MED2_LIBS) @CPPUNIT_LIBS@
++libMEDSPLITTERTest_la_LIBADD= ../../MEDMEM/libmedmem.la ../libmedsplitter.la
+ 
+ if MED_ENABLE_KERNEL
+     libMEDSPLITTERTest_la_CPPFLAGS+= ${KERNEL_CXXFLAGS}
+--- src6.3.1/MED_SRC_6.3.1/src/ParaMEDCouplingCorba/Makefile.am.orig	2011-11-11 20:42:03.621788013 -0200
++++ src6.3.1/MED_SRC_6.3.1/src/ParaMEDCouplingCorba/Makefile.am	2011-11-11 20:42:32.180912518 -0200
+@@ -32,7 +32,6 @@ dist_libparamedcouplingcorba_la_SOURCES=
+ libparamedcouplingcorba_la_CPPFLAGS= $(KERNEL_CXXFLAGS) $(CORBA_CXXFLAGS) $(CORBA_INCLUDES) $(MPI_INCLUDES) \
+ 	-I$(srcdir)/../MEDCoupling -I$(srcdir)/../MEDCouplingCorba -I$(top_builddir)/idl -I$(srcdir)/../INTERP_KERNEL/Bases -I$(srcdir)/../INTERP_KERNEL
+ 
+-libparamedcouplingcorba_la_LDFLAGS= ../MEDCouplingCorba/libmedcouplingcorba.la ../MEDCoupling/libmedcoupling.la $(MPI_LIBS)
+-
+-LDADD= -lm
++libparamedcouplingcorba_la_LDFLAGS = $(KERNEL_LDFLAGS)
++libparamedcouplingcorba_la_LIBADD = ../MEDCouplingCorba/libmedcouplingcorba.la ../MEDCoupling/libmedcoupling.la $(MPI_LIBS) -lm -lSalomeMPIContainer
+ 
+--- src6.3.1/VISU_SRC_6.3.1/idl/Makefile.am.orig	2011-11-11 20:44:42.223480139 -0200
++++ src6.3.1/VISU_SRC_6.3.1/idl/Makefile.am	2011-11-11 20:45:00.917561836 -0200
+@@ -42,7 +42,7 @@ libSalomeIDLVISU_la_CPPFLAGS =			\
+ 	-I$(top_builddir)/idl			\
+ 	@CORBA_CXXFLAGS@ @CORBA_INCLUDES@ @KERNEL_CXXFLAGS@ @MED_CXXFLAGS@
+ libSalomeIDLVISU_la_LDFLAGS = -no-undefined -version-info=0:0:0
+-libSalomeIDLVISU_la_LIBADD  = @CORBA_LIBS@ $(MED_LDFLAGS) -lSalomeIDLMED
++libSalomeIDLVISU_la_LIBADD  = @CORBA_LIBS@ $(KERNEL_LDFLAGS) -lSalomeIDLMED
+ 
+ # These variables defines the building process of CORBA files
+ OMNIORB_IDL         = @OMNIORB_IDL@
+--- src6.3.1/YACS_SRC_6.3.1/idl/Makefile.am.orig	2011-11-11 20:45:35.766714200 -0200
++++ src6.3.1/YACS_SRC_6.3.1/idl/Makefile.am	2011-11-11 20:45:49.165772801 -0200
+@@ -34,7 +34,7 @@ lib_LTLIBRARIES = libSalomeIDLYACS.la
+ libSalomeIDLYACS_la_SOURCES = $(IDL_SRC)
+ 
+ libSalomeIDLYACS_la_LIBADD = \
+-	$(OMNIORB_LIBS)
++	$(OMNIORB_LIBS) -L$(KERNEL_ROOT_DIR)/lib$(LIB_LOCATION_SUFFIX)/salome -lSalomeIDLKernel
+ 
+ libSalomeIDLYACS_la_CXXFLAGS = \
+ 	$(OMNIORB_INCLUDES) \
+--- src6.3.1/YACS_SRC_6.3.1/src/engine_swig/Makefile.am.orig	2011-11-11 20:46:12.318874098 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/engine_swig/Makefile.am	2011-11-11 20:46:51.206044307 -0200
+@@ -65,7 +65,7 @@ _pilot_la_CXXFLAGS = \
+ 
+ _pilot_la_LDFLAGS  = -module
+ 
+-_pilot_la_LIBADD = ../engine/libYACSlibEngine.la $(OMNIORB_LIBS) $(PYTHON_LIBS)
++_pilot_la_LIBADD = ../engine/libYACSlibEngine.la $(OMNIORB_LIBS) $(PYTHON_LDFLAGS)
+ 
+ 
+ pypilotWRAP.cxx: pypilot.i pilot.i $(SWIGINCLUDES) engtypemaps.i pilotWRAP.cxx
+@@ -79,7 +79,7 @@ pypilot.py : pypilotWRAP.cxx
+ _pypilot_la_SOURCES =  pypilotWRAP.cxx
+ _pypilot_la_CXXFLAGS =  $(THREAD_DEF) $(PYTHON_CPPFLAGS) $(OMNIORB_INCLUDES) $(OMNIORB_CXXFLAGS) -I$(srcdir)/../engine -I$(srcdir)/../bases
+ _pypilot_la_LDFLAGS  = -module
+-_pypilot_la_LIBADD = ../engine/libYACSlibEngine.la $(OMNIORB_LIBS) $(PYTHON_LIBS)
++_pypilot_la_LIBADD = ../engine/libYACSlibEngine.la $(OMNIORB_LIBS) $(PYTHON_LDFLAGS)
+ 
+ docengine.i:$(SWIGINCLUDES)
+ 	DOXSRCDIR=$(top_srcdir)/src/engine doxygen $(top_srcdir)/Misc/Doxyfile
+--- src6.3.1/YACS_SRC_6.3.1/src/runtime/Makefile.am.orig	2011-11-11 20:47:10.392128328 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/runtime/Makefile.am	2011-11-11 20:47:37.742248140 -0200
+@@ -113,11 +113,12 @@ DSC_LIBS=$(KERNEL_LDFLAGS) -lSalomeDSCCo
+ endif
+ 
+ libYACSRuntimeSALOME_la_LIBADD = \
+-	$(DSC_LIBS) $(SALOME_LIBS) $(OMNIORB_LIBS) $(PYTHON_LIBS) $(LIBXML_LIBS) \
++	$(DSC_LIBS) $(SALOME_LIBS) $(OMNIORB_LIBS) $(PYTHON_LDFLAGS) $(LIBXML_LIBS) \
+ 	../../idl/libSalomeIDLYACS.la \
+ 	../engine/libYACSlibEngine.la
+ 
+ AM_CXXFLAGS = \
++	-I$(srcdir)/../engine \
+ 	$(THREAD_DEF) \
+ 	$(PYTHON_CPPFLAGS) \
+ 	$(OMNIORB_INCLUDES) \
+@@ -125,7 +126,6 @@ AM_CXXFLAGS = \
+ 	$(OMNIORB_CXXFLAGS) \
+ 	$(SALOME_INCL_PATH) \
+ 	-I$(srcdir)/../bases \
+-	-I$(srcdir)/../engine \
+ 	-I../../idl \
+ 	$(LIBXML_INCLUDES)
+ 
+--- src6.3.1/YACS_SRC_6.3.1/src/yacsloader_swig/Makefile.am.orig	2011-11-11 20:49:54.647848615 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/yacsloader_swig/Makefile.am	2011-11-11 20:49:56.558857025 -0200
+@@ -59,7 +59,7 @@ _loader_la_CXXFLAGS = \
+ 
+ _loader_la_LDFLAGS  = -module 
+ 
+-_loader_la_LIBADD =  ../yacsloader/libYACSloader.la $(OMNIORB_LIBS) $(PYTHON_LIBS)
++_loader_la_LIBADD =  ../yacsloader/libYACSloader.la $(OMNIORB_LIBS) $(PYTHON_LDFLAGS)
+ 
+ docyacsloader.i:$(SWIGINCLUDES)
+ 	DOXSRCDIR=$(top_srcdir)/src/yacsloader doxygen $(top_srcdir)/Misc/Doxyfile
+--- src6.3.1/GUI_SRC_6.3.1/src/OBJECT/Makefile.am.orig	2011-11-12 01:17:10.745179261 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/OBJECT/Makefile.am	2011-11-12 01:17:15.895203314 -0200
+@@ -59,7 +59,7 @@ dist_libSalomeObject_la_SOURCES =				\
+ 	SALOME_DataMapIteratorOfDataMapOfIOMapOfInteger_0.cxx
+ 
+ libSalomeObject_la_CPPFLAGS = $(QT_INCLUDES) $(CAS_CPPFLAGS)
+-libSalomeObject_la_LDFLAGS  = $(QT_LIBS) $(CAS_LDPATH) -lTKV3d
++libSalomeObject_la_LDFLAGS  = $(QT_LIBS) $(CAS_LDPATH) -lTKV3d -lTKernel -lTKMath
+ 
+ # internal (non-distributed) headers
+ EXTRA_DIST +=				\
+--- src6.3.1/SMESH_SRC_6.3.1/src/SMDS/Makefile.am.orig	2011-11-16 22:50:48.141926577 -0200
++++ src6.3.1/SMESH_SRC_6.3.1/src/SMDS/Makefile.am	2011-11-16 22:50:49.738934444 -0200
+@@ -127,7 +127,7 @@ libSMDS_la_CPPFLAGS = \
+ 
+ libSMDS_la_LDFLAGS  = \
+ 	$(VTK_LIBS) \
+-	$(KERNEL_LDFLAGS) -lSALOMELocalTrace
++	$(KERNEL_LDFLAGS) -lSALOMELocalTrace -lOpUtil
+ 
+ # Executables targets
+ bin_PROGRAMS = SMDS_MemoryLimit
+--- src6.3.1/ATOMGEN_SRC_6.3.1/idl/Makefile.am.orig	2011-11-17 03:25:09.553827947 -0200
++++ src6.3.1/ATOMGEN_SRC_6.3.1/idl/Makefile.am	2011-11-17 03:26:06.928161548 -0200
+@@ -42,7 +42,8 @@ libATOMGENIDL_la_CPPFLAGS = \
+ 	-I$(top_builddir)/idl \
+ 	@CORBA_CXXFLAGS@ @CORBA_INCLUDES@ @KERNEL_CXXFLAGS@
+ libATOMGENIDL_la_LDFLAGS = -no-undefined -version-info=0:0:0
+-libATOMGENIDL_la_LIBADD  = @CORBA_LIBS@
++libATOMGENIDL_la_LIBADD  = @CORBA_LIBS@ \
++	-L$(KERNEL_ROOT_DIR)/lib$(LIB_LOCATION_SUFFIX)/salome -lSalomeIDLKernel
+ 
+ # These variables defines the building process of CORBA files
+ OMNIORB_IDL         = @OMNIORB_IDL@
+--- src6.3.1/JOBMANAGER_SRC_6.3.1/idl/Makefile.am.orig	2011-07-07 06:43:48.000000000 -0300
++++ src6.3.1/JOBMANAGER_SRC_6.3.1/idl/Makefile.am	2011-11-17 05:03:36.626600065 -0200
+@@ -31,7 +31,7 @@ nodist_libJOBMANAGER_IDL_la_SOURCES = JO
+ nodist_salomeinclude_HEADERS    = JOBMANAGER_IDL.hh
+ 
+ libJOBMANAGER_IDL_la_CXXFLAGS     = -I. @KERNEL_CXXFLAGS@ @OMNIORB_CXXFLAGS@ @OMNIORB_INCLUDES@
+-libJOBMANAGER_IDL_la_LIBADD       = $(KERNEL_LIBS)
++libJOBMANAGER_IDL_la_LIBADD       = $(KERNEL_LDFLAGS) -lSalomeIDLKernel
+ 
+ OMNIORB_IDLCXXFLAGS = @OMNIORB_IDLCXXFLAGS@ -I$(KERNEL_ROOT_DIR)/idl/salome
+ 
+--- src6.3.1/JOBMANAGER_SRC_6.3.1/src/engine/Makefile.am.orig	2011-11-17 05:05:30.445201595 -0200
++++ src6.3.1/JOBMANAGER_SRC_6.3.1/src/engine/Makefile.am	2011-11-17 05:09:49.756572866 -0200
+@@ -33,5 +33,6 @@ libBL_Engine_la_CXXFLAGS = -I$(top_srcdi
+ 
+ libBL_Engine_la_LIBADD = $(top_builddir)/src/bases/libBL_Bases.la \
+ 			 $(top_builddir)/idl/libJOBMANAGER_IDL.la \
+-			  @OMNIORB_LIBS@
++			  @OMNIORB_LIBS@ \
++			 $(KERNEL_LDFLAGS) -lSalomeNS -lSalomeLifeCycleCORBA
+ 
+--- src6.3.1/JOBMANAGER_SRC_6.3.1/src/wrappers/Makefile.am.orig	2011-11-17 05:18:09.065216254 -0200
++++ src6.3.1/JOBMANAGER_SRC_6.3.1/src/wrappers/Makefile.am	2011-11-17 05:18:38.088370011 -0200
+@@ -48,7 +48,8 @@ libBL_Wrappers_SALOME_la_CXXFLAGS = $(qt
+ 				    -I$(KERNEL_ROOT_DIR)/include/salome \
+ 				    -I$(GUI_ROOT_DIR)/include/salome
+ 
+-libBL_Wrappers_SALOME_la_LDFLAGS = $(qt4_ldflags) 
++libBL_Wrappers_SALOME_la_LDFLAGS = $(qt4_ldflags) \
++				   $(KERNEL_LDFLAGS) -lSalomeApp
+ 
+ libBL_Wrappers_SALOME_la_LIBADD = -lQtGui -lQtCore $(top_builddir)/src/bases/libBL_Bases.la
+ 
+--- src6.3.1/HOMARD_SRC_6.3.1/src/HOMARDGUI/Makefile.am.orig	2011-11-17 23:12:46.727272067 -0200
++++ src6.3.1/HOMARD_SRC_6.3.1/src/HOMARDGUI/Makefile.am	2011-11-17 23:13:05.988378710 -0200
+@@ -121,6 +121,7 @@ libHOMARD_la_LDFLAGS  =
+ 	../../idl/libSalomeIDLHOMARD.la \
+ 	../HOMARD_I/libHOMARDEngine.la  \
+ 	$(KERNEL_LDFLAGS)               \
++	-lSalomeDS			\
+ 	$(MED2_LIBS)                    \
+         -lSalomeLifeCycleCORBA          \
+ 	$(GUI_LDFLAGS)                  \

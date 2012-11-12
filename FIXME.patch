@@ -1,0 +1,21 @@
+--- src6.3.1/VISU_SRC_6.3.1/src/CONVERTOR/VISU_GaussMergeFilter.cxx.orig	2011-11-11 21:01:55.428083778 -0200
++++ src6.3.1/VISU_SRC_6.3.1/src/CONVERTOR/VISU_GaussMergeFilter.cxx	2011-11-11 21:02:29.802242931 -0200
+@@ -293,6 +293,7 @@ VISU_GaussMergeFilter
+   if(IsMergingInputs()){
+     vtkCellData *aCellData = theInput->GetCellData();
+     if(vtkDataArray *aCellMapper = aCellData->GetArray("VISU_CELLS_MAPPER")){
++#if 0
+       vtkIntArray *aGeometryCellMapper = dynamic_cast<vtkIntArray*>(aCellMapper);
+       
+       vtkIntArray* aDataPointMapper = GetIDMapper(FieldList,
+@@ -383,6 +384,10 @@ VISU_GaussMergeFilter
+           }
+         }
+       }
++#else
++      fputs("src5.1.5/VISU_SRC_5.1.5/src/CONVERTOR/VISU_GaussMergeFilter.cxx:302: undefined reference to `vtkIntArray* VISU::GetIDMapper<VISU::TGetPointData>(VISU::TFieldList*, VISU::TGetPointData, char const*)'", stderr);
++      abort();
++#endif
+     }
+   }
+   return true;

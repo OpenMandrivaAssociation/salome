@@ -1,0 +1,60 @@
+--- src6.3.1/GUI_SRC_6.3.1/src/LightApp/resources/LightApp.xml.orig	2011-11-11 21:12:30.887027342 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/LightApp/resources/LightApp.xml	2011-11-11 21:12:44.285089422 -0200
+@@ -5,7 +5,7 @@
+   CEDRAT, EDF R&D, LEG, PRINCIPIA R&D, BUREAU VERITAS
+ 
+   This library is free software; you can redistribute it and/or
+-  modify it under the terms of the GNU Lesser General Public
++  modify it under the terms of te GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License.
+ 
+@@ -227,6 +227,6 @@
+   <section name="ExternalBrowser" >
+     <!-- External HELP browser settings -->
+     <parameter value="C:\Program Files\Internet Explorer\iexplore.exe" name="winapplication" />
+-    <parameter value="/usr/bin/mozilla" name="application" />
++    <parameter value="/usr/bin/xdg-open " name="application" />
+   </section>
+ </document>
+--- src6.3.1/KERNEL_SRC_6.3.1/bin/runSalome.py.orig	2011-11-11 21:14:39.072621385 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/bin/runSalome.py	2011-11-11 21:14:49.062667668 -0200
+@@ -27,6 +27,11 @@
+ #
+ 
+ import sys, os, string, glob, time, pickle, re
++
++import distutils.sysconfig
++sys.path.append("%s/%s"%(distutils.sysconfig.get_python_lib(plat_specific=1), "salome"))
++sys.path.append("/usr/bin/salome")
++
+ import orbmodule
+ import setenv
+ from server import *
+--- src6.3.1/KERNEL_SRC_6.3.1/src/Container/SALOME_Container.py.orig	2011-11-11 21:13:53.527410310 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/src/Container/SALOME_Container.py	2011-11-11 21:14:19.030528501 -0200
+@@ -36,6 +36,11 @@ import os
+ import sys
+ import string
+ import traceback
++
++import distutils.sysconfig
++sys.path.append("%s/%s"%(distutils.sysconfig.get_python_lib(plat_specific=1), "salome"))
++sys.path.append("/usr/bin/salome")
++
+ import imp
+ from omniORB import CORBA, PortableServer
+ import SALOMEDS
+--- src6.3.1/KERNEL_SRC_6.3.1/src/Container/SALOME_ContainerPy.py.orig	2011-11-11 21:15:08.855760000 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/src/Container/SALOME_ContainerPy.py	2011-11-11 21:15:14.933788470 -0200
+@@ -32,6 +32,10 @@ import os
+ import sys
+ import string
+ 
++import distutils.sysconfig
++sys.path.append("%s/%s"%(distutils.sysconfig.get_python_lib(plat_specific=1), "salome"))
++sys.path.append("/usr/bin/salome")
++
+ from omniORB import CORBA, PortableServer
+ import SALOMEDS 
+ import Engines, Engines__POA

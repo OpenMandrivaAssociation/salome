@@ -1,0 +1,11 @@
+--- src6.3.1/GUI_SRC_6.3.1/src/PyConsole/PyConsole_Editor.cxx.orig	2011-11-11 21:33:13.573836873 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/PyConsole/PyConsole_Editor.cxx	2011-11-11 21:33:19.603865019 -0200
+@@ -463,7 +463,7 @@ void PyConsole_Editor::execAndWait( cons
+ void PyConsole_Editor::handleReturn()
+ {
+   // get last line
+-  QTextBlock par = document()->end().previous();
++  QTextBlock par = document()->lastBlock();
+   if ( !par.isValid() ) return;
+ 
+   // get command

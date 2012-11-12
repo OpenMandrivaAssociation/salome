@@ -1,0 +1,687 @@
+--- src6.3.1/KERNEL_SRC_6.3.1/salome_adm/unix/config_files/check_cas.m4.orig	2011-11-11 20:13:06.422594797 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/salome_adm/unix/config_files/check_cas.m4	2011-11-11 20:19:51.438453361 -0200
+@@ -52,31 +52,6 @@ CAS_LDFLAGS=""
+ occ_ok=no
+ config_h=no
+ 
+-dnl libraries directory location
+-case $host_os in
+-   linux*)
+-      casdir=Linux
+-      ;;
+-   freebsd*)
+-      casdir=Linux
+-      ;;
+-   irix5.*)
+-      casdir=Linux
+-      ;;
+-   irix6.*)
+-      casdir=Linux
+-      ;;
+-   osf*)
+-      casdir=Linux
+-      ;;
+-   solaris2.*)
+-      casdir=Linux
+-      ;;
+-   *)
+-      casdir=Linux
+-      ;;
+-esac
+-
+ AC_MSG_CHECKING(for OpenCascade directories)
+ 
+ if test -z "$CASROOT"; then
+@@ -91,16 +66,11 @@ if test -z "$CASROOT"; then
+   done
+ fi
+ 
+-CAS_LIBDIR="$CASROOT/$casdir/lib"
++CAS_LIBDIR="$CASROOT/lib"
+ if test -d ${CAS_LIBDIR}; then
+   AC_MSG_RESULT(yes)
+ else
+-  if test -d ${CASROOT}/lib; then
+-    CAS_LIBDIR="$CASROOT/lib"
+-    AC_MSG_RESULT(yes)
+-  else
+-    AC_MSG_RESULT(no)
+-  fi
++  AC_MSG_RESULT(no)
+ fi
+   CAS_LDPATH="-L$CAS_LIBDIR "
+ 
+@@ -227,7 +197,7 @@ else
+   CAS_KERNEL="$CAS_LDPATH -lTKernel"
+   CAS_MATH="$CAS_LDPATH -lTKMath"
+ 
+-  if test -f $CASROOT/$casdir/lib/libStdPlugin.so ; then
++  if test -f $CASROOT/lib/libStdPlugin.so ; then
+     # this libraries are only for CASCADE 5.2.3
+     CAS_STDPLUGIN="StdPlugin"
+   fi
+--- src6.3.1/YACS_SRC_6.3.1/src/wrappergen/src/HXX2SALOME_GENERIC_CLASS_NAME_SRC/adm_local/unix/config_files/check_cas.m4.orig	2011-11-11 22:35:16.932751133 -0200
++++ src6.3.1/YACS_SRC_6.3.1/src/wrappergen/src/HXX2SALOME_GENERIC_CLASS_NAME_SRC/adm_local/unix/config_files/check_cas.m4	2011-11-11 22:35:33.694831751 -0200
+@@ -211,7 +211,7 @@ else
+   fi
+ 
+   CAS_OCAF="$CAS_LDPATH -lPTKernel -lTKernel -lTKCDF -lTKLCAF -lTKPCAF -lTKStdSchema"
+-  CAS_OCAFVIS="$CAS_LDPATH -lTKCAF -lStdPlugin -lStdLPlugin -lTKPLCAF -lTKPShape -lTKStdLSchema -lTKShapeSchema"
++  CAS_OCAFVIS="$CAS_LDPATH -lTKCAF -lFWOSPlugin -lTKernel -lTKPLCAF -lTKPShape -lTKStdLSchema -lTKShapeSchema"
+   
+   CAS_TKV3d="$CAS_LDPATH -lTKV3d"
+   CAS_VIEWER="$CAS_TKV3d -lTKService"
+--- src6.3.1/KERNEL_SRC_6.3.1/salome_adm/unix/config_files/check_cas.m4.orig	2011-11-11 23:27:14.751777763 -0200
++++ src6.3.1/KERNEL_SRC_6.3.1/salome_adm/unix/config_files/check_cas.m4	2011-11-11 23:27:18.950797083 -0200
+@@ -203,7 +203,7 @@ else
+   fi
+ 
+   CAS_OCAF="$CAS_LDPATH -lPTKernel -lTKernel -lTKCDF -lTKLCAF -lTKPCAF -lTKStdSchema"
+-  CAS_OCAFVIS="$CAS_LDPATH -lTKCAF -lStdPlugin -lStdLPlugin -lTKPLCAF -lTKPShape -lTKStdLSchema -lTKShapeSchema"
++  CAS_OCAFVIS="$CAS_LDPATH -lTKCAF -lFWOSPlugin -lTKernel -lTKPLCAF -lTKPShape -lTKStdLSchema -lTKShapeSchema"
+   
+   CAS_TKV3d="$CAS_LDPATH -lTKV3d"
+   CAS_VIEWER="$CAS_TKV3d -lTKService"
+--- src6.3.1/GUI_SRC_6.3.1/src/OCCViewer/OCCViewer_ViewWindow.cxx.orig	2011-11-12 01:36:46.316667415 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/OCCViewer/OCCViewer_ViewWindow.cxx	2011-11-12 01:37:25.700851239 -0200
+@@ -1824,8 +1824,10 @@ void OCCViewer_ViewWindow::setCuttingPla
+     view->InitActivePlanes();
+     if ( view->MoreActivePlanes() )
+       clipPlane = view->ActivePlane();
+-    else
+-      clipPlane = new V3d_Plane( viewer );
++    else {
++      clipPlane = new V3d_Plane( );
++      viewer->AddPlane(clipPlane);
++    }
+ 
+     // set new a,b,c,d values for the plane
+     gp_Pln pln( gp_Pnt( x, y, z ), gp_Dir( dx, dy, dz ) );
+--- src6.3.1/GUI_SRC_6.3.1/src/OCCViewer/Makefile.am.orig	2011-11-12 01:40:22.007717845 -0200
++++ src6.3.1/GUI_SRC_6.3.1/src/OCCViewer/Makefile.am	2011-11-12 01:44:01.111847656 -0200
+@@ -128,6 +128,6 @@ libOCCViewer_la_CPPFLAGS = $(QT_INCLUDES
+ 	-I$(srcdir)/../SUIT -I$(srcdir)/../ViewerTools -I$(srcdir)/../Qtx \
+ 	-I$(srcdir)/../OpenGLUtils
+ 
+-libOCCViewer_la_LDFLAGS  = $(OGL_LIBS) $(QT_MT_LIBS) $(CAS_KERNEL) $(CAS_VIEWER)
++libOCCViewer_la_LDFLAGS  = $(OGL_LIBS) $(QT_MT_LIBS) $(CAS_KERNEL) $(CAS_VIEWER) -lTKMath -lTKG3d -lTKBRep -lTKGeomBase -lXmu
+ libOCCViewer_la_LIBADD   = ../Qtx/libqtx.la ../SUIT/libsuit.la \
+ 	../ViewerTools/libViewerTools.la ../OpenGLUtils/libOpenGLUtils.la
+--- src6.3.1/GEOM_SRC_6.3.1/src/ARCHIMEDE/Makefile.am.orig	2011-11-16 20:07:29.788151217 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/ARCHIMEDE/Makefile.am	2011-11-16 20:07:41.364212783 -0200
+@@ -47,5 +47,5 @@ libGEOMArchimede_la_CPPFLAGS =	\
+ libGEOMArchimede_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace	\
+ 	$(CAS_KERNEL)				\
+-	$(CAS_MODELER) -lTKMesh			\
++	$(CAS_MODELER) -lTKMesh -lTKMath	\
+ 	$(STDLIB)
+--- src6.3.1/GEOM_SRC_6.3.1/src/NMTDS/Makefile.am.orig	2011-11-16 20:16:17.264958482 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/NMTDS/Makefile.am	2011-11-16 20:18:00.013505743 -0200
+@@ -163,7 +163,7 @@ libNMTDS_la_CPPFLAGS =		\
+ 
+ libNMTDS_la_LDFLAGS  =		\
+ 	$(STDLIB)		\
+-	$(CAS_LDPATH) -lTKBool -lTKBO
++	$(CAS_LDPATH) -lTKBool -lTKBO -lTKernel -lTKMath -lTKBRep
+ 
+ # extra dist files
+ CDL_FILES =				\
+--- src6.3.1/GEOM_SRC_6.3.1/src/NMTTools/Makefile.am.orig	2011-11-16 20:20:25.581281291 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/NMTTools/Makefile.am	2011-11-16 20:23:55.329399220 -0200
+@@ -145,6 +145,8 @@ libNMTTools_la_LDFLAGS  =		\
+ 	../NMTDS/libNMTDS.la		\
+ 	$(STDLIB)			\
+ 	$(CAS_LDPATH) -lTKBool -lTKBO	\
++	-lTKGeomAlgo -lTKG2d -lTKVRML	\
++	-lTKG3d	-lTKTopAlgo -lTKGeomBase\
+ 	$(KERNEL_LDFLAGS)
+ 
+ CDL_FILES =					\
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMAlgo/BlockFix_UnionFaces.cxx.orig	2011-11-16 20:28:46.049949542 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMAlgo/BlockFix_UnionFaces.cxx	2011-11-16 20:36:23.837392571 -0200
+@@ -42,7 +42,7 @@
+ #include <ShapeFix_Wire.hxx>
+ #include <ShapeFix_Edge.hxx>
+ 
+-#include <IntPatch_TheIIIntOfIntersection.hxx>
++#include <IntPatch_Intersection.hxx>
+ 
+ #include <BRep_Tool.hxx>
+ #include <BRep_Builder.hxx>
+@@ -617,7 +617,7 @@ Standard_Boolean BlockFix_UnionFaces::Is
+ #if (OCC_VERSION_MAJOR << 16 | OCC_VERSION_MINOR << 8 | OCC_VERSION_MAINTENANCE) > 0x060100
+       OCC_CATCH_SIGNALS;
+ #endif
+-      IntPatch_TheIIIntOfIntersection anIIInt (aGA1, aTT1, aGA2, aTT2, aPrec, aPrec);
++      IntPatch_Intersection anIIInt (aGA1, aTT1, aGA2, aTT2, aPrec, aPrec);
+       if (!anIIInt.IsDone() || anIIInt.IsEmpty())
+         return false;
+ 
+--- src6.3.1/GEOM_SRC_6.3.1/src/OCC2VTK/Makefile.am.orig	2011-11-16 20:41:50.279762999 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/OCC2VTK/Makefile.am	2011-11-16 20:41:57.605793604 -0200
+@@ -46,6 +46,6 @@ libOCC2VTK_la_CPPFLAGS =	\
+ 	$(KERNEL_CXXFLAGS)
+ 
+ libOCC2VTK_la_LDFLAGS  =	\
+-	$(CAS_KERNEL) -lTKBRep -lTKG2d -lTKG3d -lTKV3d -lTKMesh -lTKGeomBase -lTKGeomAlgo -lTKTopAlgo -lTKService \
++	$(CAS_KERNEL) -lTKBRep -lTKG2d -lTKG3d -lTKV3d -lTKMesh -lTKGeomBase -lTKGeomAlgo -lTKTopAlgo -lTKService -lTKMath \
+ 	$(VTK_LIBS) \
+ 	$(KERNEL_LDFLAGS)  -lSALOMELocalTrace
+--- src6.3.1/GEOM_SRC_6.3.1/src/SKETCHER/Makefile.am.orig	2011-11-16 20:40:13.833361008 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/SKETCHER/Makefile.am	2011-11-16 20:40:24.109403754 -0200
+@@ -46,4 +46,4 @@ libGEOMSketcher_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace	\
+ 	$(STDLIB)				\
+ 	$(CAS_KERNEL)				\
+-	$(CAS_MODELER)
++	$(CAS_MODELER) -lTKMath
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOM/GEOM_Engine.cxx.orig	2011-11-16 20:44:42.578485455 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOM/GEOM_Engine.cxx	2011-11-16 21:10:59.698444242 -0200
+@@ -45,7 +45,7 @@
+ #include <TDataStd_ChildNodeIterator.hxx>
+ #include <TFunction_Driver.hxx>
+ #include <TFunction_DriverTable.hxx>
+-#include <TDataStd_HArray1OfByte.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ #include <TDataStd_ByteArray.hxx>
+ #include <TDataStd_UAttribute.hxx>
+ #include <TDF_ChildIterator.hxx>
+@@ -60,7 +60,7 @@
+ #include <TColStd_MapOfTransient.hxx>
+ #include <TColStd_HSequenceOfInteger.hxx>
+ 
+-#include <Interface_DataMapIteratorOfDataMapOfIntegerTransient.hxx>
++#include <TColStd_DataMapIteratorOfDataMapOfIntegerTransient.hxx>
+ #include <Resource_DataMapIteratorOfDataMapOfAsciiStringAsciiString.hxx>
+ 
+ #include <set>
+@@ -230,7 +230,7 @@ GEOM_Engine::~GEOM_Engine()
+     RemoveObject(*objit);
+ 
+   //Close all documents not closed
+-  for(Interface_DataMapIteratorOfDataMapOfIntegerTransient anItr(_mapIDDocument); anItr.More(); anItr.Next())
++  for(TColStd_DataMapIteratorOfDataMapOfIntegerTransient anItr(_mapIDDocument); anItr.More(); anItr.Next())
+     Close(anItr.Key());
+ 
+   _mapIDDocument.Clear();
+@@ -265,7 +265,7 @@ Handle(TDocStd_Document) GEOM_Engine::Ge
+ int GEOM_Engine::GetDocID(Handle(TDocStd_Document) theDocument)
+ {
+   if(theDocument.IsNull()) return -1;
+-  for(Interface_DataMapIteratorOfDataMapOfIntegerTransient anItr(_mapIDDocument); anItr.More(); anItr.Next())
++  for(TColStd_DataMapIteratorOfDataMapOfIntegerTransient anItr(_mapIDDocument); anItr.More(); anItr.Next())
+     if(anItr.Value() == theDocument) return anItr.Key();
+ 
+   return -1;
+@@ -806,7 +806,7 @@ Handle(TColStd_HSequenceOfAsciiString) G
+ #define TEXTURE_LABEL_DATA     5
+ 
+ int GEOM_Engine::addTexture(int theDocID, int theWidth, int theHeight,
+-                            const Handle(TDataStd_HArray1OfByte)& theTexture,
++                            const Handle(TColStd_HArray1OfByte)& theTexture,
+                             const TCollection_AsciiString& theFileName)
+ {
+   Handle(TDocStd_Document) aDoc = GetDocument(theDocID);
+@@ -851,11 +851,11 @@ int GEOM_Engine::addTexture(int theDocID
+   return aTextureID;
+ }
+ 
+-Handle(TDataStd_HArray1OfByte) GEOM_Engine::getTexture(int theDocID, int theTextureID,
++Handle(TColStd_HArray1OfByte) GEOM_Engine::getTexture(int theDocID, int theTextureID,
+                                                        int& theWidth, int& theHeight,
+                                                        TCollection_AsciiString& theFileName)
+ {
+-  Handle(TDataStd_HArray1OfByte) anArray;
++  Handle(TColStd_HArray1OfByte) anArray;
+   theWidth = theHeight = 0;
+ 
+   Handle(TDocStd_Document) aDoc = GetDocument(theDocID);
+@@ -1455,7 +1455,7 @@ void AddObjectColors (int
+   }
+ }
+ 
+-static TCollection_AsciiString pack_data(const Handle(TDataStd_HArray1OfByte)& aData )
++static TCollection_AsciiString pack_data(const Handle(TColStd_HArray1OfByte)& aData )
+ {
+   TCollection_AsciiString stream;
+   if (!aData.IsNull()) {
+@@ -1483,7 +1483,7 @@ void AddTextures (int theDocID, TCollect
+       if (*it <= 0) continue;
+       Standard_Integer aWidth, aHeight;
+       TCollection_AsciiString aFileName;
+-      Handle(TDataStd_HArray1OfByte) aTexture = engine->getTexture(theDocID, *it, aWidth, aHeight, aFileName);
++      Handle(TColStd_HArray1OfByte) aTexture = engine->getTexture(theDocID, *it, aWidth, aHeight, aFileName);
+       if (aWidth > 0 && aHeight > 0 && !aTexture.IsNull() && aTexture->Length() > 0 ) {
+         TCollection_AsciiString aCommand = "\n\t";
+         aCommand += "texture_map["; aCommand += *it; aCommand += "] = ";
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOM/GEOM_Engine.hxx.orig	2011-11-16 20:43:31.998188850 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOM/GEOM_Engine.hxx	2011-11-16 21:11:32.071591537 -0200
+@@ -27,12 +27,13 @@
+ #include "GEOM_Object.hxx"
+ #include "GEOM_DataMapOfAsciiStringTransient.hxx"
+ 
+-#include <Interface_DataMapOfIntegerTransient.hxx> 
++#include <TColStd_DataMapOfIntegerTransient.hxx> 
+ #include <Resource_DataMapOfAsciiStringAsciiString.hxx>
+ #include <TDocStd_Document.hxx>
+ #include <TColStd_HArray1OfInteger.hxx>
+ #include <TColStd_HSequenceOfAsciiString.hxx>
+ #include <TDF_Label.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ #include <map>
+ #include <list>
+@@ -50,8 +51,8 @@ struct TObjectData
+   TCollection_AsciiString _pyName;
+   bool                    _unpublished;
+ };
+-  
+-class Handle_TDataStd_HArray1OfByte;
++
++class Handle_TColStd_HArray1OfByte;
+ 
+ struct TVariable{
+   TCollection_AsciiString myVariable;
+@@ -148,10 +149,10 @@ class GEOM_Engine
+   Standard_EXPORT Handle(TColStd_HSequenceOfAsciiString) GetAllDumpNames() const;
+ 
+   Standard_EXPORT int addTexture(int theDocID, int theWidth, int theHeight,
+-                                 const Handle(TDataStd_HArray1OfByte)& theTexture,
++                                 const Handle(TColStd_HArray1OfByte)& theTexture,
+                                  const TCollection_AsciiString& theFileName = "");
+ 
+-  Standard_EXPORT Handle(TDataStd_HArray1OfByte) getTexture(int theDocID, int theTextureID,
++  Standard_EXPORT Handle(TColStd_HArray1OfByte) getTexture(int theDocID, int theTextureID,
+                                                             int& theWidth, int& theHeight,
+                                                             TCollection_AsciiString& theFileName);
+ 
+@@ -165,7 +166,7 @@ class GEOM_Engine
+  private:
+ 
+   Handle(GEOM_Application)  _OCAFApp;
+-  Interface_DataMapOfIntegerTransient _mapIDDocument;
++  TColStd_DataMapOfIntegerTransient _mapIDDocument;
+   int _UndoLimit;
+   GEOM_DataMapOfAsciiStringTransient _objects;
+ 
+--- src6.3.1/GEOM_SRC_6.3.1/src/BREPExport/Makefile.am.orig	2011-07-07 06:42:13.000000000 -0300
++++ src6.3.1/GEOM_SRC_6.3.1/src/BREPExport/Makefile.am	2011-11-16 21:16:32.175961576 -0200
+@@ -41,4 +41,4 @@ libBREPExport_la_CPPFLAGS =	\
+ libBREPExport_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace	\
+ 	$(STDLIB)				\
+-	$(CAS_LDPATH) -lTKBRep
++	$(CAS_LDPATH) -lTKBRep -lTKernel
+--- src6.3.1/GEOM_SRC_6.3.1/src/BREPImport/Makefile.am.orig	2011-11-16 21:17:18.030171620 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/BREPImport/Makefile.am	2011-11-16 21:20:17.168993920 -0200
+@@ -40,5 +40,5 @@ libBREPImport_la_CPPFLAGS =	\
+ 
+ libBREPImport_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace	\
+-	$(CAS_LDPATH) -lTKBRep			\
++	$(CAS_LDPATH) -lTKBRep -lTKernel -lTKMath	\
+ 	$(STDLIB)
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOM/Makefile.am.orig	2011-11-16 21:13:30.016129001 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOM/Makefile.am	2011-11-16 21:15:42.647734912 -0200
+@@ -72,6 +72,7 @@ libGEOMbasic_la_CPPFLAGS =	\
+ libGEOMbasic_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace -lSALOMEBasics	\
+ 	$(STDLIB)				\
+-	$(CAS_LDPATH) -lTKXSBase		\
++	$(CAS_LDPATH) -lTKXSBase -lTKMath	\
++	-lTKBRep -lTKG2d -lTKernel		\
+ 	$(CAS_OCAF)				\
+ 	$(CAS_OCAFVIS) 
+--- src6.3.1/GEOM_SRC_6.3.1/src/IGESExport/Makefile.am.orig	2011-11-16 21:20:38.424091664 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/IGESExport/Makefile.am	2011-11-16 21:21:51.242426816 -0200
+@@ -39,5 +39,5 @@ libIGESExport_la_CPPFLAGS =	\
+ 
+ libIGESExport_la_LDFLAGS  =	\
+ 	$(STDLIB)		\
+-	$(CAS_LDPATH) -lTKIGES	\
++	$(CAS_LDPATH) -lTKIGES -lTKernel -lTKXSBase	\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace -lSALOMEBasics
+--- src6.3.1/GEOM_SRC_6.3.1/src/IGESImport/Makefile.am.orig	2011-11-16 21:22:31.801613679 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/IGESImport/Makefile.am	2011-11-16 21:25:06.435327298 -0200
+@@ -39,4 +39,5 @@ libIGESImport_la_CPPFLAGS =	\
+ libIGESImport_la_LDFLAGS  =		\
+ 	$(STDLIB)			\
+ 	$(CAS_LDPATH) -lTKIGES -lTKCAF -lTKLCAF	\
++	-lTKMath -lTKXSBase -lTKernel -lTKBRep	\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace -lSALOMEBasics
+--- src6.3.1/GEOM_SRC_6.3.1/src/ShHealOper/Makefile.am.orig	2011-11-16 21:30:42.477843452 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/ShHealOper/Makefile.am	2011-11-16 21:31:12.443972100 -0200
+@@ -68,4 +68,4 @@ libShHealOper_la_LDFLAGS  =	\
+ 	$(CAS_KERNEL)		\
+ 	$(CAS_MATH)		\
+ 	$(CAS_TKTopAlgo)	\
+-	$(CAS_LDPATH) -lTKBool -lTKShHealing -lTKLCAF
++	$(CAS_LDPATH) -lTKBool -lTKShHealing -lTKLCAF -lTKCAF
+--- src6.3.1/GEOM_SRC_6.3.1/src/STEPExport/Makefile.am.orig	2011-11-16 21:25:18.150381437 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/STEPExport/Makefile.am	2011-11-16 21:26:20.242668567 -0200
+@@ -43,4 +43,4 @@ libSTEPExport_la_CPPFLAGS =	\
+ libSTEPExport_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace -lSALOMEBasics \
+ 	$(STDLIB)				\
+-	$(CAS_LDPATH) -lTKSTEP
++	$(CAS_LDPATH) -lTKSTEP -lTKXSBase -lTKernel
+--- src6.3.1/GEOM_SRC_6.3.1/src/STEPImport/Makefile.am.orig	2011-11-16 21:27:05.155876438 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/STEPImport/Makefile.am	2011-11-16 21:28:48.316354194 -0200
+@@ -43,4 +43,5 @@ libSTEPImport_la_CPPFLAGS =	\
+ libSTEPImport_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace -lSALOMEBasics \
+ 	$(STDLIB)				\
+-	$(CAS_LDPATH) -lTKSTEP -lTKCAF -lTKLCAF -lTKSTEPBase
++	$(CAS_LDPATH) -lTKSTEP -lTKCAF -lTKLCAF -lTKSTEPBase \
++	-lTKernel -lTKMath -lTKXSBase -lTKBRep
+--- src6.3.1/GEOM_SRC_6.3.1/src/STLExport/Makefile.am.orig	2011-11-16 21:29:31.945541015 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/STLExport/Makefile.am	2011-11-16 21:29:41.115580304 -0200
+@@ -39,4 +39,4 @@ libSTLExport_la_CPPFLAGS =	\
+ libSTLExport_la_LDFLAGS  =			\
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace	\
+ 	$(STDLIB)				\
+-	$(CAS_LDPATH) -lTKSTL
++	$(CAS_LDPATH) -lTKSTL -lTKernel
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMImpl/GEOMImpl_IInsertOperations.cxx.orig	2011-07-07 06:42:23.000000000 -0300
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMImpl/GEOMImpl_IInsertOperations.cxx	2011-11-16 21:36:58.118462573 -0200
+@@ -49,7 +49,7 @@
+ #include <TopoDS_Vertex.hxx>
+ #include <BRep_Tool.hxx>
+ #include <gp_Pnt.hxx>
+-#include <TDataStd_HArray1OfByte.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ #include <Standard_Failure.hxx>
+ #include <Standard_ErrorHandler.hxx> // CAREFUL ! position of this file is critic : see Lucien PIGNOLONI / OCC
+@@ -552,7 +552,7 @@ int GEOMImpl_IInsertOperations::LoadText
+ 
+   if (theTextureFile.IsEmpty()) return 0;
+ 
+-  Handle(TDataStd_HArray1OfByte) aTexture;
++  Handle(TColStd_HArray1OfByte) aTexture;
+ 
+   FILE* fp = fopen(theTextureFile.ToCString(), "r");
+   if (!fp) return 0;
+@@ -594,7 +594,7 @@ int GEOMImpl_IInsertOperations::LoadText
+   if (bytedata.empty() || bytedata.size() != lines.size()*lenbytes)
+     return 0;
+ 
+-  aTexture = new TDataStd_HArray1OfByte(1, lines.size()*lenbytes);
++  aTexture = new TColStd_HArray1OfByte(1, lines.size()*lenbytes);
+   std::list<unsigned char>::iterator bdit;
+   int i;
+   for (i = 1, bdit = bytedata.begin(); bdit != bytedata.end(); ++bdit, ++i)
+@@ -606,7 +606,7 @@ int GEOMImpl_IInsertOperations::LoadText
+ }
+   
+ int GEOMImpl_IInsertOperations::AddTexture(int theWidth, int theHeight, 
+-                                           const Handle(TDataStd_HArray1OfByte)& theTexture)
++                                           const Handle(TColStd_HArray1OfByte)& theTexture)
+ {
+   SetErrorCode(KO);
+   int aTextureId = GetEngine()->addTexture(GetDocID(), theWidth, theHeight, theTexture);
+@@ -614,12 +614,12 @@ int GEOMImpl_IInsertOperations::AddTextu
+   return aTextureId;
+ }
+ 
+-Handle(TDataStd_HArray1OfByte) GEOMImpl_IInsertOperations::GetTexture(int theTextureId,
++Handle(TColStd_HArray1OfByte) GEOMImpl_IInsertOperations::GetTexture(int theTextureId,
+                                                                       int& theWidth, int& theHeight)
+ {
+   SetErrorCode(KO);
+   
+-  Handle(TDataStd_HArray1OfByte) aTexture;
++  Handle(TColStd_HArray1OfByte) aTexture;
+   theWidth = theHeight = 0;
+   TCollection_AsciiString aFileName;
+ 
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMImpl/GEOMImpl_IInsertOperations.hxx.orig	2011-11-16 21:37:16.939544054 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMImpl/GEOMImpl_IInsertOperations.hxx	2011-11-16 21:37:25.117579471 -0200
+@@ -33,7 +33,7 @@
+ #include <Resource_Manager.hxx>
+ #include <list>
+ 
+-class Handle_TDataStd_HArray1OfByte;
++class Handle_TColStd_HArray1OfByte;
+ 
+ class GEOMImpl_IInsertOperations : public GEOM_IOperations {
+  public:
+@@ -63,9 +63,9 @@ class GEOMImpl_IInsertOperations : publi
+   Standard_EXPORT int LoadTexture(const TCollection_AsciiString& theTextureFile);
+   
+   Standard_EXPORT int AddTexture(int theWidth, int theHeight, 
+-                                 const Handle(TDataStd_HArray1OfByte)& theTexture);
++                                 const Handle(TColStd_HArray1OfByte)& theTexture);
+ 
+-  Standard_EXPORT Handle(TDataStd_HArray1OfByte) GetTexture(int theTextureId, 
++  Standard_EXPORT Handle(TColStd_HArray1OfByte) GetTexture(int theTextureId, 
+                                                             int& theWidth, int& theHeight);
+ 
+   Standard_EXPORT std::list<int> GetAllTextures();
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOM_I/GEOM_IInsertOperations_i.cc.orig	2011-11-16 21:41:28.436635979 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOM_I/GEOM_IInsertOperations_i.cc	2011-11-16 21:42:04.101791284 -0200
+@@ -36,7 +36,7 @@
+ #include "GEOM_Object.hxx"
+ 
+ #include <TColStd_HSequenceOfAsciiString.hxx>
+-#include <TDataStd_HArray1OfByte.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ //=============================================================================
+ /*!
+@@ -228,9 +228,9 @@ CORBA::Long GEOM_IInsertOperations_i::Ad
+                                                  const SALOMEDS::TMPFile& theTexture)
+ {
+   GetOperations()->SetNotDone();
+-  Handle(TDataStd_HArray1OfByte) aTexture;
++  Handle(TColStd_HArray1OfByte) aTexture;
+   if ( theTexture.length() > 0 ) {
+-    aTexture = new TDataStd_HArray1OfByte( 1, theTexture.length() );
++    aTexture = new TColStd_HArray1OfByte( 1, theTexture.length() );
+     for ( int i = 0; i < theTexture.length(); i++ )
+       aTexture->SetValue( i+1, (Standard_Byte)theTexture[i] );
+   }
+@@ -242,7 +242,7 @@ SALOMEDS::TMPFile* GEOM_IInsertOperation
+                                                         CORBA::Long& theHeight)
+ {
+   int aWidth, aHeight;
+-  Handle(TDataStd_HArray1OfByte) aTextureImpl = GetOperations()->GetTexture( theID, aWidth, aHeight );
++  Handle(TColStd_HArray1OfByte) aTextureImpl = GetOperations()->GetTexture( theID, aWidth, aHeight );
+   theWidth  = aWidth;
+   theHeight = aHeight;
+   SALOMEDS::TMPFile_var aTexture;
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMGUI/GEOM_Displayer.cxx.orig	2011-11-16 21:56:59.375723611 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMGUI/GEOM_Displayer.cxx	2011-11-16 21:57:25.531839434 -0200
+@@ -95,7 +95,7 @@
+ #include CORBA_CLIENT_HEADER(SALOMEDS_Attributes)
+ 
+ #include <GEOMImpl_Types.hxx>
+-#include <Graphic3d_HArray1OfBytes.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ 
+ //================================================================
+@@ -697,7 +697,7 @@ void GEOM_Displayer::Update( SALOME_OCCP
+ 	      } else { //Custom marker string contains "IdOfTexsture"
+ 		int textureId = aList[0].toInt();
+ 		Standard_Integer aWidth, aHeight;
+-		Handle(Graphic3d_HArray1OfBytes) aTexture = GeometryGUI::getTexture( aStudy, textureId, aWidth, aHeight );
++		Handle(TColStd_HArray1OfByte) aTexture = GeometryGUI::getTexture( aStudy, textureId, aWidth, aHeight );
+ 		if ( !aTexture.IsNull() ) {
+ 		  static int TextureId = 0;
+ 		  Handle(Prs3d_PointAspect) aTextureAspect = new Prs3d_PointAspect((Quantity_NameOfColor)GetColor(),
+@@ -735,7 +735,7 @@ void GEOM_Displayer::Update( SALOME_OCCP
+ 	      } else { //Custom marker string contains "IdOfTexsture"
+ 		int textureId = aList[0].toInt();
+ 		Standard_Integer aWidth, aHeight;
+-		Handle(Graphic3d_HArray1OfBytes) aTexture = GeometryGUI::getTexture( aStudy, textureId, aWidth, aHeight );
++		Handle(TColStd_HArray1OfByte) aTexture = GeometryGUI::getTexture( aStudy, textureId, aWidth, aHeight );
+ 		if ( !aTexture.IsNull() ) {
+ 		  static int TextureId = 0;
+ 		  Handle(Prs3d_PointAspect) aTextureAspect = new Prs3d_PointAspect(aColor,
+@@ -873,7 +873,7 @@ void GEOM_Displayer::Update( SALOME_OCCP
+ 		  Quantity_Color aQuanColor = SalomeApp_Tools::color( aResMgr->colorValue( "Geometry", "point_color", QColor( 255, 255, 0 ) ) );
+ 		  if ( hasColor ) aQuanColor = Quantity_Color( aSColor.R, aSColor.G, aSColor.B, Quantity_TOC_RGB );
+ 		  Standard_Integer aWidth, aHeight;
+-		  Handle(Graphic3d_HArray1OfBytes) aTexture = GeometryGUI::getTexture( getStudy(), aTextureId, aWidth, aHeight );
++		  Handle(TColStd_HArray1OfByte) aTexture = GeometryGUI::getTexture( getStudy(), aTextureId, aWidth, aHeight );
+ 		  if ( !aTexture.IsNull() ) {
+ 		    static int TextureId = 0;
+ 		    Handle(Prs3d_PointAspect) aTextureAspect = new Prs3d_PointAspect(aQuanColor,
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMGUI/GeometryGUI.cxx.orig	2011-11-16 21:51:08.996177242 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMGUI/GeometryGUI.cxx	2011-11-16 21:55:57.148448329 -0200
+@@ -83,7 +83,7 @@
+ #include <Aspect_TypeOfMarker.hxx>
+ #include <OSD_SharedLibrary.hxx>
+ #include <NCollection_DataMap.hxx>
+-#include <Graphic3d_HArray1OfBytes.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ #include <utilities.h>
+ 
+@@ -1451,10 +1451,10 @@ QString GeometryGUI::engineIOR() const
+   return "";
+ }
+ 
+-Handle(Graphic3d_HArray1OfBytes) GeometryGUI::getTexture( SalomeApp_Study* theStudy, int theId, int& theWidth, int& theHeight )
++Handle(TColStd_HArray1OfByte) GeometryGUI::getTexture( SalomeApp_Study* theStudy, int theId, int& theWidth, int& theHeight )
+ {
+   theWidth = theHeight = 0;
+-  Handle(Graphic3d_HArray1OfBytes) aTexture;
++  Handle(TColStd_HArray1OfByte) aTexture;
+   if ( theStudy ) {
+     TextureMap aTextureMap = myTextureMap[ theStudy->studyDS()->StudyId() ];
+     aTexture = aTextureMap[ theId ];
+@@ -1466,7 +1466,7 @@ Handle(Graphic3d_HArray1OfBytes) Geometr
+         if ( aWidth > 0 && aHeight > 0 && aStream->length() > 0 ) {
+           theWidth  = aWidth;
+           theHeight = aHeight;
+-          aTexture  = new Graphic3d_HArray1OfBytes( 1, aStream->length() );
++          aTexture  = new TColStd_HArray1OfByte( 1, aStream->length() );
+           for ( int i = 0; i < aStream->length(); i++ )
+             aTexture->SetValue( i+1, (Standard_Byte)aStream[i] );
+           aTextureMap[ theId ] = aTexture;
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMGUI/GeometryGUI.h.orig	2011-11-16 21:50:37.732039703 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMGUI/GeometryGUI.h	2011-11-16 21:55:01.819203792 -0200
+@@ -42,7 +42,7 @@
+ 
+ // OCCT Includes
+ #include <gp_Ax3.hxx>
+-#include <Graphic3d_HArray1OfBytes.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ // IDL headers
+ #include "SALOMEconfig.h"
+@@ -93,7 +93,7 @@ public:
+   virtual void                initialize( CAM_Application* );
+   virtual QString             engineIOR() const;
+ 
+-  static Handle(Graphic3d_HArray1OfBytes) getTexture( SalomeApp_Study*, int, int&, int& );
++  static Handle(TColStd_HArray1OfByte) getTexture( SalomeApp_Study*, int, int&, int& );
+ 
+   static bool                 InitGeomGen();
+ 
+@@ -180,7 +180,7 @@ public:
+ 
+ private:  
+ 
+-  typedef QMap<long, Handle(Graphic3d_HArray1OfBytes)> TextureMap;
++  typedef QMap<long, Handle(TColStd_HArray1OfByte)> TextureMap;
+   typedef QMap<long, TextureMap> StudyTextureMap;
+   typedef QMap<QString, GEOMGUI*> GUIMap;
+ 
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMToolsGUI/GEOMToolsGUI_1.cxx.orig	2011-11-16 22:04:03.879608551 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMToolsGUI/GEOMToolsGUI_1.cxx	2011-11-16 22:04:19.037676080 -0200
+@@ -75,7 +75,7 @@
+ #include <Prs3d_IsoAspect.hxx>
+ #include <Prs3d_PointAspect.hxx>
+ #include <Graphic3d_AspectMarker3d.hxx>
+-#include <Graphic3d_HArray1OfBytes.hxx>
++#include <TColStd_HArray1OfByte.hxx>
+ 
+ // QT Includes
+ #include <QColorDialog>
+@@ -198,7 +198,7 @@ void GEOMToolsGUI::OnAutoColor()
+       else {
+         Standard_Integer aWidth, aHeight;
+         aCurPointAspect->GetTextureSize( aWidth, aHeight );
+-        Handle(Graphic3d_HArray1OfBytes) aTexture = aCurPointAspect->GetTexture();
++        Handle(TColStd_HArray1OfByte) aTexture = aCurPointAspect->GetTexture();
+         aCurDrawer->SetPointAspect( new Prs3d_PointAspect( aQuanColor, 1, aWidth, aHeight, aTexture ) );
+       }
+       ic->SetLocalAttributes( io, aCurDrawer );
+@@ -308,7 +308,7 @@ void GEOMToolsGUI::OnColor()
+                       else {
+                         Standard_Integer aWidth, aHeight;
+                         aCurPointAspect->GetTextureSize( aWidth, aHeight );
+-                        Handle(Graphic3d_HArray1OfBytes) aTexture = aCurPointAspect->GetTexture();
++                        Handle(TColStd_HArray1OfByte) aTexture = aCurPointAspect->GetTexture();
+                         aCurDrawer->SetPointAspect(new Prs3d_PointAspect(aColor, 1, aWidth, aHeight, aTexture));
+                       }
+                       ic->SetLocalAttributes(io, aCurDrawer, Standard_False);
+--- src6.3.1/GEOM_SRC_6.3.1/src/GEOMToolsGUI/GEOMToolsGUI_MarkerDlg.cxx.orig	2011-11-16 22:05:33.655989066 -0200
++++ src6.3.1/GEOM_SRC_6.3.1/src/GEOMToolsGUI/GEOMToolsGUI_MarkerDlg.cxx	2011-11-16 22:05:41.710022447 -0200
+@@ -336,7 +336,7 @@ void GEOMToolsGUI_MarkerDlg::addTexture(
+ {
+   if ( id > 0 && myCustomTypeCombo->index( id ) == -1 ) {
+     int tWidth, tHeight;
+-    Handle(Graphic3d_HArray1OfBytes) texture = GeometryGUI::getTexture( getStudy(), id, tWidth, tHeight );
++    Handle(TColStd_HArray1OfByte) texture = GeometryGUI::getTexture( getStudy(), id, tWidth, tHeight );
+     if ( !texture.IsNull() && texture->Length() == tWidth*tHeight/8 ) {
+       QImage image( tWidth, tHeight, QImage::Format_Mono );
+       image.setColor( 0, qRgba( 0, 0, 0, 0   ) );
+--- src6.3.1/SMESH_SRC_6.3.1/src/SMESHDS/Makefile.am.orig	2011-11-16 22:52:06.661313179 -0200
++++ src6.3.1/SMESH_SRC_6.3.1/src/SMESHDS/Makefile.am	2011-11-16 22:52:12.587342341 -0200
+@@ -65,4 +65,4 @@ libSMESHDS_la_CPPFLAGS = \
+ libSMESHDS_la_LDFLAGS  = \
+ 	../SMDS/libSMDS.la \
+ 	$(KERNEL_LDFLAGS) -lSALOMELocalTrace \
+-	$(CAS_KERNEL) -lTKBRep
++	$(CAS_KERNEL) -lTKBRep -lTKMath
+--- src6.3.1/SMESH_SRC_6.3.1/src/SMESH/SMESH_MeshEditor.cxx.orig	2011-11-16 23:00:59.959982566 -0200
++++ src6.3.1/SMESH_SRC_6.3.1/src/SMESH/SMESH_MeshEditor.cxx	2011-11-16 23:02:10.983350316 -0200
+@@ -2829,8 +2829,8 @@ static bool getClosestUV (Extrema_GenExt
+   if ( projector.IsDone() ) {
+     double u, v, minVal = DBL_MAX;
+     for ( int i = projector.NbExt(); i > 0; i-- )
+-      if ( projector.Value( i ) < minVal ) {
+-        minVal = projector.Value( i );
++      if ( projector.SquareDistance( i ) < minVal ) {
++        minVal = projector.SquareDistance( i );
+         projector.Point( i ).Parameter( u, v );
+       }
+     result.SetCoord( u, v );
+@@ -10785,7 +10785,7 @@ namespace {
+       _extremum.Perform(aPnt);
+       if ( _extremum.IsDone() )
+         for ( int iSol = 1; iSol <= _extremum.NbExt() && _state == TopAbs_OUT; ++iSol)
+-          _state = ( _extremum.Value(iSol) <= theTol ? TopAbs_IN : TopAbs_OUT );
++          _state = ( _extremum.SquareDistance(iSol) <= theTol ? TopAbs_IN : TopAbs_OUT );
+     }
+     TopAbs_State State() const
+     {
+--- src6.3.1/SMESH_SRC_6.3.1/src/SMESH/SMESH_Pattern.cxx.orig	2011-11-16 23:04:28.753061882 -0200
++++ src6.3.1/SMESH_SRC_6.3.1/src/SMESH/SMESH_Pattern.cxx	2011-11-16 23:04:43.544138138 -0200
+@@ -444,8 +444,8 @@ static gp_XY project (const SMDS_MeshNod
+   }
+   double u, v, minVal = DBL_MAX;
+   for ( int i = theProjectorPS.NbExt(); i > 0; i-- )
+-    if ( theProjectorPS.Value( i ) < minVal ) {
+-      minVal = theProjectorPS.Value( i );
++    if ( theProjectorPS.SquareDistance( i ) < minVal ) {
++      minVal = theProjectorPS.SquareDistance( i );
+       theProjectorPS.Point( i ).Parameter( u, v );
+     }
+   return gp_XY( u, v );
+--- src6.3.1/HEXABLOCK_SRC_6.3.1/src/HEXABLOCK/Makefile.am.orig	2011-11-17 03:43:42.697229975 -0200
++++ src6.3.1/HEXABLOCK_SRC_6.3.1/src/HEXABLOCK/Makefile.am	2011-11-17 03:43:51.183278261 -0200
+@@ -103,7 +103,7 @@ libHEXABLOCKimpl_la_CPPFLAGS = \
+ 	-I$(top_builddir)/idl
+ 
+ libHEXABLOCKimpl_la_LDFLAGS = \
+-	$(CAS_KERNEL) -lTKBRep -lTKG2d -lTKG3d -lTKTopAlgo -lTKGeomBase -lTKGeomAlgo \
++	$(CAS_KERNEL) -lTKBRep -lTKG2d -lTKG3d -lTKTopAlgo -lTKGeomBase -lTKGeomAlgo -lTKMath \
+ 	$(KERNEL_LDFLAGS) -lSalomeGenericObj -lSALOMELocalTrace -lSALOMEBasics
+ 
+ ####  libHexaBlockimpl_la_CPPFLAGS =  \

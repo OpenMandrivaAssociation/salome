@@ -1,0 +1,523 @@
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/include/incvis.hpp.orig src6.3.1/netgen-4.5_SRC/libsrc/include/incvis.hpp
+--- src6.3.1/netgen-4.5_SRC/libsrc/include/incvis.hpp.orig	2010-12-30 17:15:14.304356064 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/include/incvis.hpp	2010-12-30 17:15:45.322355959 -0200
+@@ -12,10 +12,14 @@
+ #include <tix8.1.h>
+ */
+ 
++#define USE_INTERP_RESULT	1
++#define USE_INTERP_ERRORLINE	1
+ #include <tcl.h>
++#undef USE_INTERP_ERRORLINE
++#undef USE_INTERP_RESULT
+ #include <tk.h>
+ 
+-#if TK_MAJOR_VERSION==8 && TK_MINOR_VERSION==4
++#if TK_MAJOR_VERSION==8 && TK_MINOR_VERSION>=4
+ #define tcl_const const
+ #else
+ #define tcl_const
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/interface/Makefile.orig src6.3.1/netgen-4.5_SRC/libsrc/interface/Makefile
+--- src6.3.1/netgen-4.5_SRC/libsrc/interface/Makefile.orig	2010-12-30 17:18:42.409355999 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/interface/Makefile	2010-12-30 17:18:52.863355965 -0200
+@@ -1,5 +1,5 @@
+ #src = nginterface.cpp writeuser.cpp writediffpack.cpp writeabaqus.cpp writefluent.cpp writepermas.cpp writetochnog.cpp writetecplot.cpp wuchemnitz.cpp writetochnog.cpp writefeap.cpp writeelmer.cpp  writegmsh.cpp writejcm.cpp readuser.cpp importsolution.cpp
+-src = writeuser.cpp writediffpack.cpp writeabaqus.cpp writefluent.cpp writepermas.cpp writetochnog.cpp writetecplot.cpp wuchemnitz.cpp writetochnog.cpp writefeap.cpp writeelmer.cpp  writegmsh.cpp writejcm.cpp readuser.cpp nglib.cpp ngnewdelete.cpp
++src = nginterface.cpp writeuser.cpp writediffpack.cpp writeabaqus.cpp writefluent.cpp writepermas.cpp writetochnog.cpp writetecplot.cpp wuchemnitz.cpp writetochnog.cpp writefeap.cpp writeelmer.cpp  writegmsh.cpp writejcm.cpp readuser.cpp nglib.cpp ngnewdelete.cpp importsolution.cpp
+ #
+ lib = nginterface
+ libpath = libsrc/interface
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX64.orig src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX64
+--- src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX64.orig	2010-12-30 17:21:41.227356002 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX64	2010-12-30 17:26:11.806356000 -0200
+@@ -11,22 +11,20 @@ RANLIB=ranlib
+ #
+ #
+ CFLAGS2 =
+-CPLUSPLUSFLAGS2 = -pg -march=nocona -O2 -DLINUX -DOPENGL \
+-	-ftemplate-depth-99 -finline-limit=100000 \
+-	  -fforce-addr  -funroll-loops \
+-	-DTRAFO  -DNGSOLVE -DnoADDON -DnoLAPACK -DnoFAST \
+-	-DnoOCCGEOMETRY -I/usr/include/g++/backward  -DnoDEBUG \
+-	-I/opt/intel/mkl70/include  -DnoOCC52 -DHAVE_IOSTREAM \
++CPLUSPLUSFLAGS2 = $(CXXFLAGS) -O2 -DLINUX -DOPENGL \
++	-DTRAFO  -DNGSOLVE -DnoADDON -DnoLAPACK \
++	-I/usr/include/g++/backward  -DnoDEBUG \
++	-DHAVE_IOSTREAM \
+ 	-DnoUSE_PARDISO -DSOCKETS -DLAPACK -DFAST
+ #	-DPML   
+ #	
+ # 
+ #  
+ 
+-LINKFLAGS2 = -pg -L/usr/openwin/lib64 -L/usr/X11R6/lib64 -L/usr/lib/GL3.5 -L/usr/lib64
++#LINKFLAGS2 = -pg -L/usr/openwin/lib64 -L/usr/X11R6/lib64 -L/usr/lib/GL3.5 -L/usr/lib64
+ 
+ 
+-SYSLIB2 =  -lstdc++ 
++#SYSLIB2 =  -lstdc++ 
+ 
+ # which BLAS/Lapack ?
+ # -lmkl
+@@ -36,15 +34,15 @@ SYSLIB2 =  -lstdc++
+ #  -lblas -lgmp -lg2c             
+ # -llapack -lblas -lgmp -lg2c
+ # lapack =   -Llib -lgoto_prescott64p-r1.00  -llapack -lgmp -lg2c
+-lapack =   -L/home/joachim/intel/mkl/8.0/lib/em64t -lmkl_em64t -lmkl_lapack64 -lmkl_blas95 -lmkl_def -lmkl_em64t
++#lapack =   -L/home/joachim/intel/mkl/8.0/lib/em64t -lmkl_em64t -lmkl_lapack64 -lmkl_blas95 -lmkl_def -lmkl_em64t
+ 
+ 
+ 
+-goaltrafo = goaltrafo
+-goalngs   = goalngs
++#goaltrafo = goaltrafo
++#goalngs   = goalngs
+ # goaladdon = goaladdon
+ 
+-appngs =  lib/$(MACHINE)/*.o -lngsolvebasic 
++#appngs =  lib/$(MACHINE)/*.o -lngsolvebasic 
+ #  -ltrafoapp
+ # occlib = -L$(OCCLIB_DIR) -lTKIGES -lTKBRep -lTKSTEP -lTKSTL
+ 
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX.orig src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX
+--- src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX.orig	2010-12-30 17:21:06.248356027 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/makefile.mach.LINUX	2010-12-30 17:21:31.421356006 -0200
+@@ -16,11 +16,12 @@ RANLIB=ranlib
+ #
+ CFLAGS2 =
+ 
+-CPLUSPLUSFLAGS2 = -O2 -I/usr/include/GL3.5 -DLINUX \
+-	-ftemplate-depth-99 -finline-limit=10000 \
+-	-Wdisabled-optimization  -funroll-loops  -DnoNGSOLVE
+-
+-LINKFLAGS2 =   -L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/GL3.5 -lstdc++ 
++CPLUSPLUSFLAGS2 = $(CXXFLAGS)  -O2 -DLINUX -DOPENGL \
++	-DTRAFO  -DNGSOLVE -DnoADDON -DnoLAPACK \
++	-I/usr/include/g++/backward  -DnoDEBUG \
++	-DHAVE_IOSTREAM \
++	-DnoUSE_PARDISO -DSOCKETS -DLAPACK -DFAST
++#LINKFLAGS2 =   -L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/GL3.5 -lstdc++ 
+ 
+ # goalngs=goalngs
+ # goaltrafo=goaltrafo
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/occ/occgeom.cpp.orig src6.3.1/netgen-4.5_SRC/libsrc/occ/occgeom.cpp
+--- src6.3.1/netgen-4.5_SRC/libsrc/occ/occgeom.cpp.orig	2010-12-30 17:23:43.856356006 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/occ/occgeom.cpp	2010-12-30 17:23:58.044355995 -0200
+@@ -963,7 +963,7 @@ namespace netgen
+ 
+     BRepTools::Clean (shape);
+     //WriteOCC_STL("test.stl");
+-    BRepMesh_IncrementalMesh::BRepMesh_IncrementalMesh (shape, vispar_occdeflection, true);
++    BRepMesh_IncrementalMesh (shape, vispar_occdeflection, true);
+     cout << "done" << endl;
+ 
+ 
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/sockets/sockets.cpp.orig src6.3.1/netgen-4.5_SRC/libsrc/sockets/sockets.cpp
+--- src6.3.1/netgen-4.5_SRC/libsrc/sockets/sockets.cpp.orig	2010-12-30 17:19:04.963356081 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/sockets/sockets.cpp	2010-12-30 17:20:52.627356070 -0200
+@@ -10,7 +10,10 @@
+ 
+ #include "sockets.hpp"
+ 
+-#include <string>
++#include <string.h>
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
+ #include <sstream>
+ #include <iostream>
+ #include <errno.h>
+@@ -142,7 +145,7 @@ namespace SOCKETNAMESPACE
+     m_sock ( -1 )
+   {
+ 
+-    memset ( &m_addr,
++    ::memset ( &m_addr,
+ 	     0,
+ 	     sizeof ( m_addr ) );
+ 
+@@ -353,7 +356,7 @@ namespace SOCKETNAMESPACE
+ 
+     s = "";
+ 
+-    memset ( buf, 0, MAXRECV + 1 );
++    ::memset ( buf, 0, MAXRECV + 1 );
+ 
+     int status = ::recv ( m_sock, buf, MAXRECV, 0 );
+ 
+@@ -364,7 +367,7 @@ namespace SOCKETNAMESPACE
+ #else
+ 	latesterror = errno;
+ #endif
+-	printf("status == -1  errno == %d in Socket::recv\n", latesterror);
++	::printf("status == -1  errno == %d in Socket::recv\n", latesterror);
+ 	return 0;
+       }
+     else if ( status == 0 )
+@@ -378,7 +381,7 @@ namespace SOCKETNAMESPACE
+   
+     //cout << "sizestring " << sizestring << endl;
+ 
+-    int size = atoi(sizestring.c_str());
++    int size = ::atoi(sizestring.c_str());
+ 
+     s.reserve(size);
+ 
+@@ -411,7 +414,7 @@ namespace SOCKETNAMESPACE
+ #else
+ 	    latesterror = errno;
+ #endif
+-	    printf("status == -1  errno == %d in Socket::recv\n", latesterror);
++	    ::printf("status == -1  errno == %d in Socket::recv\n", latesterror);
+ 	    return 0;
+ 	  }
+ 	else if ( status == 0 )
+@@ -691,13 +694,13 @@ namespace SOCKETNAMESPACE
+   {
+     if ( ! Socket::create() )
+       {
+-	printf("Could not create client socket.\n" );
++	::printf("Could not create client socket.\n" );
+ 	throw SocketException ( "Could not create client socket." );
+       }
+ 
+     if ( ! Socket::connect ( host, port ) )
+       {
+-	printf( "Could not bind to port.\n" );
++	::printf( "Could not bind to port.\n" );
+ 	throw SocketException ( "Could not bind to port." );
+       }
+ 
+diff -p -up src6.3.1/netgen-4.5_SRC/libsrc/visualization/vssolution.cpp.orig src6.3.1/netgen-4.5_SRC/libsrc/visualization/vssolution.cpp
+--- src6.3.1/netgen-4.5_SRC/libsrc/visualization/vssolution.cpp.orig	2010-12-30 17:15:54.453356138 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/visualization/vssolution.cpp	2010-12-30 17:16:21.627355920 -0200
+@@ -4021,7 +4021,7 @@ namespace netgen
+ 
+ 		int pointpos; // SZ 
+ 		char * pch;
+-		pch=strchr(scalname,'.');
++		pch=strchr((char *)scalname,'.');
+ 		pointpos = int(pch-scalname+1);
+ 
+ 		for (i = 0; i < vssolution.soldata.Size(); i++)
+diff -p -up src6.3.1/netgen-4.5_SRC/makeForSalome.sh.orig src6.3.1/netgen-4.5_SRC/makeForSalome.sh
+--- src6.3.1/netgen-4.5_SRC/makeForSalome.sh.orig	2010-12-30 17:13:57.514356003 -0200
++++ src6.3.1/netgen-4.5_SRC/makeForSalome.sh	2010-12-30 17:14:20.102355996 -0200
+@@ -17,6 +17,8 @@ make -C libsrc/meshing
+ make -C libsrc/opti
+ make -C libsrc/stlgeom
+ make -C libsrc/occ
++make -C libsrc/visualization
++make -C libsrc/sockets
+ 
+ if [ ! -d install ] ; then
+ 	mkdir install
+@@ -29,3 +31,7 @@ if [ ! -d install/include ] ; then
+ fi
+ 
+ cp libsrc/interface/nglib.h libsrc/general/*.hpp libsrc/csg/*.hpp libsrc/geom2d/*.hpp \
++    libsrc/gprim/*.hpp libsrc/linalg/*.hpp libsrc/meshing/*.hpp \
++    libsrc/occ/*.hpp libsrc/opti/*.hpp libsrc/include/mydefs.hpp \
++    libsrc/stlgeom/*.hpp libsrc/include/mystdlib.h \
++    install/include
+diff -p -up src6.3.1/netgen-4.5_SRC/ngtcltk/ngpkg.cpp.orig src6.3.1/netgen-4.5_SRC/ngtcltk/ngpkg.cpp
+--- src6.3.1/netgen-4.5_SRC/ngtcltk/ngpkg.cpp.orig	2010-12-30 17:16:31.761356011 -0200
++++ src6.3.1/netgen-4.5_SRC/ngtcltk/ngpkg.cpp	2010-12-30 17:18:30.122356002 -0200
+@@ -39,7 +39,7 @@ namespace metis { extern "C" {
+ #include "../libsrc/sockets/socketmanager.hpp"
+ #endif
+ 
+-extern bool nodisplay;
++bool nodisplay;
+ 
+ namespace netgen
+ {
+@@ -176,7 +176,8 @@ namespace netgen
+ 
+ 
+ 
+-#ifndef SMALLLIB
++//#ifndef SMALLLIB
++#if 0
+   // Destination for messages, errors, ...
+   void Ng_PrintDest(const char * s)
+   {
+@@ -191,12 +192,13 @@ namespace netgen
+ #endif
+ 
+   static clock_t starttimea;
++#if 0
+   void ResetTime ()
+   {
+     starttimea = clock();
+   }
+ 
+-#ifndef SMALLLIB
++//#ifndef SMALLLIB
+   double GetTime ()
+   {
+     return double(clock() - starttimea) / CLOCKS_PER_SEC;
+@@ -2854,7 +2856,8 @@ namespace netgen
+   void SetVisualScene (Tcl_Interp * interp)
+   {
+ #ifdef OPENGL
+-#ifndef SMALLLIB
++//#ifndef SMALLLIB
++#if 0
+     const char * vismode = vispar.selectvisual;
+     // Tcl_GetVar (interp, "selectvisual", 0);
+     vs = &vscross;
+--- src6.3.1/netgen-4.5_SRC/libsrc/occ/Partition_Inter3d.cxx.orig	2011-11-17 01:16:51.301873208 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/occ/Partition_Inter3d.cxx	2011-11-17 01:17:57.804236375 -0200
+@@ -245,7 +245,7 @@ static void PutInBounds (const TopoDS_Fa
+       Standard_Integer i, nbExt = anExtPS.NbExt();
+       Extrema_POnSurf aPOnSurf;
+       for (i = 1; i <= nbExt; ++i )
+-        if (anExtPS.Value( i ) <= TolE) {
++        if (anExtPS.SquareDistance( i ) <= TolE) {
+           aPOnSurf = anExtPS.Point( i );
+           break;
+         }
+--- src6.3.1/netgen-4.5_SRC/libsrc/occ/Partition_Loop2d.cxx.orig	2011-11-17 01:19:32.597753243 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/occ/Partition_Loop2d.cxx	2011-11-17 01:20:44.885126323 -0200
+@@ -23,7 +23,7 @@
+ #include <BRepAdaptor_Surface.hxx>
+ #include <BRepAlgo_AsDes.hxx>
+ #include <BRepAlgo_FaceRestrictor.hxx>
+-#include <BRepOffset_DataMapOfShapeReal.hxx>
++#include <BRepMesh_DataMapOfShapeReal.hxx>
+ #include <BRepTopAdaptor_FClass2d.hxx>
+ #include <BRep_Builder.hxx>
+ #include <BRep_Tool.hxx>
+@@ -520,7 +520,7 @@ static void prepareDegen (const TopoDS_E
+     DC.Initialize( DegEdge, F );
+ 
+   // avoid intersecting twice the same edge
+-  BRepOffset_DataMapOfShapeReal EUMap ( EdgesList.Extent() );
++  BRepMesh_DataMapOfShapeReal EUMap ( EdgesList.Extent() );
+ 
+   Standard_Real U, f, l;
+   BRep_Tool::Range (DegEdge, f, l);
+--- src6.3.1/netgen-4.5_SRC/libsrc/occ/Partition_Spliter.cxx.orig	2011-11-17 01:21:53.223476332 -0200
++++ src6.3.1/netgen-4.5_SRC/libsrc/occ/Partition_Spliter.cxx	2011-11-17 01:22:21.253619899 -0200
+@@ -1169,7 +1169,7 @@ static void findEqual (const TopTools_Li
+           for (; j<=nbj && ok; ++j) {
+             if (Extrema.IsMin(j)) {
+ 	      hasMin = Standard_True;
+-              ok = Extrema.Value(j) <= tol;
++              ok = Extrema.SquareDistance(j) <= tol;
+ 	    }
+           }
+         }
+--- src6.3.1/NETGENPLUGIN_SRC_6.3.1/adm_local/unix/config_files/check_NETGEN.m4.orig	2011-11-17 02:14:56.665455156 -0200
++++ src6.3.1/NETGENPLUGIN_SRC_6.3.1/adm_local/unix/config_files/check_NETGEN.m4	2011-11-17 02:24:01.211385328 -0200
+@@ -73,12 +73,6 @@ if test "x$NETGEN_HOME" != "x"; then
+   echo ----------------------------------------------------------
+ 
+   NETGEN_INCLUDES="-I${NETGEN_HOME}/include"
+-
+-  if test "$NETGEN_NEW" = "yes" ; then
+-    NETGEN_INCLUDES="${NETGEN_INCLUDES} -DNETGEN_NEW -I${NETGEN_HOME}/share/netgen/include"
+-  fi
+-
+-  # check ${NETGEN_HOME}/lib/LINUX directory for libraries
+   if test -f ${NETGEN_HOME}/lib/LINUX/libcsg.a ; then
+   	NETGEN_LIBS_DIR="${NETGEN_HOME}/lib/LINUX"
+   else
+@@ -89,156 +83,8 @@ if test "x$NETGEN_HOME" != "x"; then
+ 	  	NETGEN_LIBS_DIR="${NETGEN_HOME}/lib"
+ 	fi
+   fi
+-
+   echo "NETGEN_LIBS_DIR = $NETGEN_LIBS_DIR"
+-  
+-  CPPFLAGS_old="$CPPFLAGS"
+-  CXXFLAGS_old="$CXXFLAGS"
+-  CPPFLAGS="$CAS_CPPFLAGS $NETGEN_INCLUDES $CPPFLAGS"
+-  CXXFLAGS="$CAS_CPPFLAGS $NETGEN_INCLUDES $CXXFLAGS"
+-
+-  AC_MSG_CHECKING(for Netgen header file)
+-
+-  AC_CHECK_HEADER(nglib.h,Netgen_ok=yes,Netgen_ok=no)
+-  if test "x$Netgen_ok" == "xyes"; then
+-
+-    if test "$NETGEN_NEW" = "no" ; then
+-
+-    AC_MSG_CHECKING(for Netgen libraries)
+-
+-    LDFLAGS_old="$LDFLAGS"
+-    LDFLAGS="-L. -lNETGEN $CAS_LDPATH -lTKernel -lTKMath -lTKG3d -lTKBRep -lTKShHealing -lTKSTEP -lTKXSBase -lTKIGES -lTKSTL -lTKTopAlgo $LDFLAGS"
+-
+-    AC_TRY_COMPILE(#include <iostream>
+-#include <fstream>
+-namespace nglib {
+-#include "nglib.h"
+-}
+-#define OCCGEOMETRY
+-#include <occgeom.hpp>
+-,nglib::Ng_Init();
+- netgen::OCCGeometry occgeo;
+- nglib::Ng_Exit();,Netgen_ok=yes;ar x "$NETGEN_LIBS_DIR/libnginterface.a";
+-	    ar x "$NETGEN_LIBS_DIR/libocc.a";
+-            ar x "$NETGEN_LIBS_DIR/libcsg.a";
+-            ar x "$NETGEN_LIBS_DIR/libgprim.a";
+-            ar x "$NETGEN_LIBS_DIR/libmesh.a";
+-            ar x "$NETGEN_LIBS_DIR/libopti.a";
+-            ar x "$NETGEN_LIBS_DIR/libgen.a";
+-            ar x "$NETGEN_LIBS_DIR/libla.a";
+-            ar x "$NETGEN_LIBS_DIR/libstlgeom.a";
+-            ar x "$NETGEN_LIBS_DIR/libgeom2d.a";
+-            $CXX -shared linopt.o bfgs.o linsearch.o global.o bisect.o meshtool.o refine.o ruler3.o improve3.o adfront3.o tetrarls.o prism2rls.o profiler.o pyramidrls.o pyramid2rls.o netrule3.o ruler2.o meshclass.o improve2.o adfront2.o netrule2.o triarls.o geomsearch.o secondorder.o meshtype.o parser3.o quadrls.o specials.o parser2.o meshing2.o meshing3.o meshfunc.o localh.o improve2gen.o delaunay.o boundarylayer.o msghandler.o meshfunc2d.o smoothing2.o smoothing3.o topology.o curvedelems_new.o clusters.o zrefine.o ngexception.o geomtest3d.o geom2d.o geom2dmesh.o geom3d.o adtree.o transform3d.o geomfuncs.o polynomial.o densemat.o vector.o basemat.o sparsmat.o algprim.o brick.o manifold.o bspline2d.o meshsurf.o csgeom.o polyhedra.o curve2d.o singularref.o edgeflw.o solid.o explicitcurve2d.o specpoin.o gencyl.o revolution.o genmesh.o genmesh2d.o spline3d.o surface.o identify.o triapprox.o meshstlsurface.o stlline.o stltopology.o stltool.o stlgeom.o stlgeomchart.o stlgeommesh.o table.o optmem.o spbita2d.o hashtabl.o sort.o flags.o seti.o bitarray.o array.o symbolta.o mystring.o moveablemem.o spline.o splinegeometry.o ngnewdelete.o nglib.o hprefinement.o Partition_Inter2d.o Partition_Loop.o Partition_Loop3d.o Partition_Inter3d.o Partition_Loop2d.o Partition_Spliter.o occgeom.o occgenmesh.o occmeshsurf.o -o libNETGEN.so;
+-            rm -rf linopt.o bfgs.o linsearch.o global.o bisect.o meshtool.o refine.o ruler3.o improve3.o adfront3.o tetrarls.o prism2rls.o profiler.o pyramidrls.o pyramid2rls.o netrule3.o ruler2.o meshclass.o improve2.o adfront2.o netrule2.o triarls.o geomsearch.o secondorder.o meshtype.o parser3.o quadrls.o specials.o parser2.o meshing2.o meshing3.o meshfunc.o localh.o improve2gen.o delaunay.o boundarylayer.o msghandler.o meshfunc2d.o smoothing2.o smoothing3.o topology.o curvedelems_new.o clusters.o zrefine.o ngexception.o geomtest3d.o geom2d.o geom2dmesh.o geom3d.o adtree.o transform3d.o geomfuncs.o polynomial.o densemat.o vector.o basemat.o sparsmat.o algprim.o brick.o manifold.o bspline2d.o meshsurf.o csgeom.o polyhedra.o curve2d.o singularref.o edgeflw.o solid.o explicitcurve2d.o specpoin.o gencyl.o revolution.o genmesh.o genmesh2d.o spline3d.o surface.o identify.o triapprox.o meshstlsurface.o stlline.o stltopology.o stltool.o stlgeom.o stlgeomchart.o stlgeommesh.o table.o optmem.o spbita2d.o hashtabl.o sort.o flags.o seti.o bitarray.o array.o symbolta.o mystring.o moveablemem.o spline.o splinegeometry.o ngnewdelete.o nglib.o hprefinement.o Partition_Inter2d.o Partition_Loop.o Partition_Loop3d.o Partition_Inter3d.o Partition_Loop2d.o Partition_Spliter.o occgeom.o occgenmesh.o occmeshsurf.o csgparser.o dynamicmem.o extrusion.o occconstruction.o parthreads.o readuser.o writeabaqus.o writediffpack.o writeelmer.o writefeap.o writefluent.o writegmsh.o writejcm.o writepermas.o writetecplot.o writetochnog.o writeuser.o wuchemnitz.o,
+-            Netgen_ok=no)
+-
+-    AC_CACHE_VAL(salome_cv_netgen_lib,[
+-                 AC_TRY_LINK([
+-                     #include <iostream>
+-                     #include <fstream>
+-                     namespace nglib {
+-                     #include "nglib.h"
+-                     }
+-                     #define OCCGEOMETRY
+-                     #include <occgeom.hpp>
+-                  ],[
+-                     nglib::Ng_Init();
+-                     netgen::OCCGeometry occgeo;
+-                     nglib::Ng_Exit();
+-                  ],
+-                  [eval "salome_cv_netgen_lib=yes";rm -rf libNETGEN.so],
+-                  [eval "salome_cv_netgen_lib=no";rm -rf libNETGEN.so])
+-    ])
+-    Netgen_ok="$salome_cv_netgen_lib"
+-
+-    else
+-
+-      LDFLAGS_old="$LDFLAGS"
+-      LDFLAGS="-L${NETGEN_LIBS_DIR} -lnglib $CAS_LDPATH -lTKernel -lTKMath -lTKG3d -lTKBRep -lTKShHealing -lTKSTEP -lTKXSBase -lTKIGES -lTKSTL -lTKTopAlgo $LDFLAGS"
+-
+-      AC_MSG_CHECKING(for official Netgen libraries)
+-      AC_CACHE_VAL(salome_cv_netgen_lib,[
+-      AC_TRY_LINK([
+-      #include <iostream>
+-      #include <fstream>
+-      namespace nglib {
+-      #include "nglib.h"
+-      }
+-      ],[
+-      nglib::Ng_Init();
+-      nglib::Ng_Exit();
+-      ],
+-      [eval "salome_cv_netgen_lib=yes"],
+-      [eval "salome_cv_netgen_lib=no"])
+-      ])
+-      Netgen_ok="$salome_cv_netgen_lib"
+-
+-      if test "$Netgen_ok" = "yes" ; then
+-      AC_MSG_RESULT(yes)
+-      AC_MSG_CHECKING(for occ support in Netgen libraries)
+-      AC_CACHE_VAL(salome_cv_netgen_occ_lib,[
+-      AC_TRY_LINK([
+-      #include <iostream>
+-      #include <fstream>
+-      #define OCCGEOMETRY
+-      namespace nglib {
+-      #include "nglib.h"
+-      }
+-      ],[
+-      nglib::Ng_Init();
+-      nglib::Ng_OCC_Geometry * ng_occ_geom = nglib::Ng_OCC_NewGeometry();
+-      nglib::Ng_Exit();
+-      ],
+-      [eval "salome_cv_netgen_occ_lib=yes"],
+-      [eval "salome_cv_netgen_occ_lib=no"])
+-      ])
+-      Netgen_ok="$salome_cv_netgen_occ_lib"
+-      fi
+-
+-      if test "$Netgen_ok" = "yes" ; then
+-      AC_MSG_RESULT(yes)
+-      AC_MSG_CHECKING(for salome patch in Netgen installation)
+-      AC_CACHE_VAL(salome_cv_netgen_salome_patch_lib,[
+-      AC_TRY_LINK([
+-      #include <iostream>
+-      #include <fstream>
+-      #define OCCGEOMETRY
+-      namespace nglib {
+-      #include "nglib.h"
+-      }
+-      #include <occgeom.hpp>
+-      ],[
+-      nglib::Ng_Init();
+-      netgen::OCCGeometry occgeo;
+-      nglib::Ng_Exit();
+-      ],
+-      [eval "salome_cv_netgen_salome_patch_lib=yes"],
+-      [eval "salome_cv_netgen_salome_patch_lib=no"])
+-      ])
+-      Netgen_ok="$salome_cv_netgen_salome_patch_lib"
+-      fi
+-
+-      if test "x$Netgen_ok" == xno ; then
+-      AC_MSG_RESULT(no)
+-      AC_MSG_ERROR(Netgen is not properly installed. Read NETGENPLUGIN_SRC/src/NETGEN/ReadMeForNgUsers for details.)
+-      fi
+-
+-      NETGEN_LIBS="-L${NETGEN_LIBS_DIR} -lnglib"
+-
+-    fi
+-
+-    LDFLAGS="$LDFLAGS_old"
+-  fi
+-
+-  CPPFLAGS="$CPPFLAGS_old"
+-  CXXFLAGS="$CXXFLAGS_old"
+-
+-  if test "x$Netgen_ok" == xno ; then
+-    AC_MSG_RESULT(no)
+-    AC_MSG_ERROR(Netgen libraries not found or not properly installed)
+-  else
+-    AC_MSG_RESULT(yes)
+-  fi
++  NETGEN_LIBS="-L${NETGEN_LIBS_DIR} -lnglib"
+ 
+ else
+ 
+--- src6.3.1/NETGENPLUGIN_SRC_6.3.1/src/NETGEN/Makefile.am.orig	2011-11-17 02:27:46.525590044 -0200
++++ src6.3.1/NETGENPLUGIN_SRC_6.3.1/src/NETGEN/Makefile.am	2011-11-17 03:11:22.915223225 -0200
+@@ -42,9 +42,14 @@ LIB_OBJ_O = \
+ 	specpoin.o gencyl.o revolution.o genmesh.o genmesh2d.o spline3d.o surface.o identify.o \
+ 	triapprox.o meshstlsurface.o stlline.o stltopology.o stltool.o stlgeom.o stlgeomchart.o \
+ 	stlgeommesh.o table.o optmem.o spbita2d.o hashtabl.o sort.o flags.o seti.o bitarray.o \
+-	array.o symbolta.o mystring.o moveablemem.o spline.o splinegeometry.o ngnewdelete.o nglib.o \
++	array.o symbolta.o mystring.o moveablemem.o spline.o splinegeometry.o ngnewdelete.o \
+ 	hprefinement.o Partition_Inter2d.o Partition_Loop.o Partition_Loop3d.o Partition_Inter3d.o \
+-	Partition_Loop2d.o Partition_Spliter.o occgeom.o occgenmesh.o occmeshsurf.o
++	Partition_Loop2d.o Partition_Spliter.o occgeom.o occgenmesh.o occmeshsurf.o mvdraw.o ngpkg.o \
++	vssolution.o vsmesh.o socketmanager.o sockets.o writeuser.o writejcm.o writetochnog.o \
++	writediffpack.o writefluent.o writeabaqus.o writepermas.o writefeap.o writeelmer.o \
++	nglib.o importsolution.o writegmsh.o vscsg.o meshdoc.o nginterface.o vsfieldlines.o \
++	occconstruction.o vsocc.o csgparser.o extrusion.o dynamicmem.o wuchemnitz.o \
++	readuser.o
+ 
+ NETGEN_LIBS_DIR=@NETGEN_LIBS_DIR@
+ 
+@@ -59,7 +64,9 @@ $(LIB_OBJ_O):
+ 	ar x $(NETGEN_LIBS_DIR)/libla.a
+ 	ar x $(NETGEN_LIBS_DIR)/libstlgeom.a
+ 	ar x $(NETGEN_LIBS_DIR)/libgeom2d.a
+-	rm -rf csgparser.o dynamicmem.o extrusion.o occconstruction.o parthreads.o readuser.o writeabaqus.o writediffpack.o writeelmer.o writefeap.o writefluent.o writegmsh.o writejcm.o writepermas.o writetecplot.o writetochnog.o writeuser.o wuchemnitz.o
++	ar x $(NETGEN_LIBS_DIR)/libvis.a
++	ar x $(NETGEN_LIBS_DIR)/libsockets.a
++	cp $(NETGEN_LIBS_DIR)/ngpkg.o .
+ 
+ #LIB_OBJ_LO = $(LIB_OBJ_O:%.o=%.lo)
+ #%.lo: %.o; @ln -s $< $@
+@@ -67,7 +74,7 @@ $(LIB_OBJ_O):
+ nodist_libNETGEN_la_SOURCES =
+ 
+ libNETGEN_la_LDFLAGS  = $(LIB_OBJ_O) \
+-	$(CAS_LDPATH) -lTKernel -lTKBRep -lTKShHealing -lTKSTEP -lTKXSBase -lTKIGES -lTKMesh -lTKSTL $(FCLIBS) $(STDLIB)
++	$(CAS_LDPATH) -lTKernel -lTKBRep -lTKShHealing -lTKSTEP -lTKXSBase -lTKIGES -lTKMesh -lTKSTL -lTKG2d -lTKBool -lTKBO -lTKPrim -lTKTopAlgo -lTKMath -lTKG3d -lTKGeomAlgo -lTKGeomBase $(FCLIBS) $(STDLIB) -lGL -lGLU -ltcl -lTogl1.7
+ 
+ libNETGEN_la_DEPENDENCIES = $(LIB_OBJ_O)
+ 
