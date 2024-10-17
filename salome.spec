@@ -19,7 +19,7 @@ Version:	6.3.1
 Release:	2
 Summary:	Pre- and Post-Processing for numerical simulation
 License:	GPL
-URL:		http://www.salome-platform.org
+URL:		https://www.salome-platform.org
 # http://www.salome-platform.org/downloads/salome-v6.3.1/DownloadDistr?platform=Sources&version=6.3.1
 Source0:	src%{version}.tar.gz
 
